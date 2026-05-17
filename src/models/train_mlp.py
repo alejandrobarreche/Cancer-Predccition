@@ -44,7 +44,6 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from sklearn.compose import ColumnTransformer
 from sklearn.metrics import (
     ConfusionMatrixDisplay,
     auc,
@@ -58,8 +57,13 @@ from sklearn.metrics import (
     roc_curve,
 )
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.utils.class_weight import compute_class_weight
+
+from src.models.mlp import build_model
+from src.models.pipelines import (
+    build_preprocessor_from_manifest,
+    load_feature_groups,
+)
 
 # ─── Seeds fijas (antes de importar TF) ───────────────────────────────────────
 RANDOM_SEED = 42
@@ -98,20 +102,6 @@ LOGGER = logging.getLogger(__name__)
 # ─── Constantes ───────────────────────────────────────────────────────────────
 TARGET_COL = "cancer"
 
-NUMERIC_COLS = [
-    "glucosa", "colesterol", "trigliceridos", "hemoglobina", "leucocitos",
-    "plaquetas", "creatinina", "edad", "num_hijos", "distancia_hospital_km",
-]
-BINARY_COLS = [
-    "diabetes", "hipertension", "obesidad", "enfermedad_cardiaca", "asma",
-    "epoc", "mut_BRCA1", "mut_TP53", "mut_EGFR", "mut_KRAS", "mut_PIK3CA",
-    "mut_ALK", "mut_BRAF", "fumador",
-]
-CATEGORICAL_COLS = [
-    "tipo_seguro", "actividad_fisica", "nivel_educativo",
-    "nivel_ingresos", "zona", "estado_civil",
-]
-
 BATCH_SIZE = 256
 MAX_EPOCHS = 100
 # Arquitectura ajustada para ~46.913 parámetros con input_dim=39:
@@ -123,85 +113,6 @@ LEARNING_RATE = 1e-3
 # Baseline de referencia (XGBoost @ threshold=0.5)
 XGBOOST_TEST_F1 = 0.556996
 XGBOOST_TEST_AUC = 0.844706
-
-
-# ─── Construcción del preprocesador ───────────────────────────────────────────
-
-def build_preprocessor() -> ColumnTransformer:
-    """ColumnTransformer: StandardScaler (num), passthrough (bin), OHE (cat)."""
-    return ColumnTransformer(
-        transformers=[
-            ("numeric", StandardScaler(), NUMERIC_COLS),
-            ("binary", "passthrough", BINARY_COLS),
-            (
-                "categorical",
-                OneHotEncoder(drop="first", handle_unknown="ignore", sparse_output=False),
-                CATEGORICAL_COLS,
-            ),
-        ],
-        remainder="drop",
-    )
-
-
-# ─── Arquitectura MLP ─────────────────────────────────────────────────────────
-
-def build_model(input_dim: int) -> tf.keras.Model:
-    """MLP densa de 3 capas ocultas con BN + Dropout.
-
-    Arquitectura 300-100-30 ajustada para ~46.881 parámetros con input_dim=39
-    (objetivo del enunciado: ~46.913 parámetros).
-
-    La arquitectura de referencia del enunciado es 128-64-32 pensada para
-    input_dim≈100+. Con input_dim=39 (30 orig + 9 de OHE), se ajustan las
-    unidades a (300, 100, 30) para mantener el orden de magnitud objetivo.
-    """
-    inputs = tf.keras.Input(shape=(input_dim,), name="input")
-
-    # Capa 1: 300 unidades (ajustado para ~46.913 params con input_dim=39)
-    x = tf.keras.layers.Dense(300, kernel_initializer="he_normal", name="dense_1")(inputs)
-    x = tf.keras.layers.BatchNormalization(name="bn_1")(x)
-    x = tf.keras.layers.Activation("relu", name="relu_1")(x)
-    x = tf.keras.layers.Dropout(0.25, name="dropout_1")(x)
-
-    # Capa 2: 100 unidades
-    x = tf.keras.layers.Dense(100, kernel_initializer="he_normal", name="dense_2")(x)
-    x = tf.keras.layers.BatchNormalization(name="bn_2")(x)
-    x = tf.keras.layers.Activation("relu", name="relu_2")(x)
-    x = tf.keras.layers.Dropout(0.25, name="dropout_2")(x)
-
-    # Capa 3: 30 unidades
-    x = tf.keras.layers.Dense(30, kernel_initializer="he_normal", name="dense_3")(x)
-    x = tf.keras.layers.BatchNormalization(name="bn_3")(x)
-    x = tf.keras.layers.Activation("relu", name="relu_3")(x)
-    x = tf.keras.layers.Dropout(0.20, name="dropout_3")(x)
-
-    outputs = tf.keras.layers.Dense(1, activation="sigmoid", name="output")(x)
-
-    model = tf.keras.Model(inputs, outputs, name="mlp_cancer")
-
-    model.compile(
-        optimizer=tf.keras.optimizers.Adam(learning_rate=LEARNING_RATE),
-        loss="binary_crossentropy",
-        metrics=[
-            "accuracy",
-            tf.keras.metrics.AUC(name="auc"),
-            tf.keras.metrics.Precision(name="precision"),
-            tf.keras.metrics.Recall(name="recall"),
-        ],
-    )
-
-    total_params = model.count_params()
-    LOGGER.info("Modelo MLP construido — input_dim=%d, params=%d", input_dim, total_params)
-    target = 46_913
-    ratio = total_params / target
-    if not (0.5 <= ratio <= 2.0):
-        LOGGER.warning(
-            "Parámetros (%d) lejos del objetivo ~46.913 (ratio=%.2f).",
-            total_params,
-            ratio,
-        )
-
-    return model
 
 
 # ─── Threshold tuning (skill: threshold-tuning) ───────────────────────────────
@@ -475,7 +386,8 @@ def main() -> None:
         test_df[TARGET_COL].mean(),
     )
 
-    feature_cols = NUMERIC_COLS + BINARY_COLS + CATEGORICAL_COLS
+    groups = load_feature_groups()
+    feature_cols = groups["numeric"] + groups["binary"] + groups["categorical"]
 
     X_train_full = train_df[feature_cols]
     y_train_full = train_df[TARGET_COL].values
@@ -499,7 +411,7 @@ def main() -> None:
 
     # 3. Preprocesado — fit SOLO en sub-train
     LOGGER.info("Ajustando preprocesador sobre sub-train...")
-    preprocessor = build_preprocessor()
+    preprocessor = build_preprocessor_from_manifest()
     X_train_t = preprocessor.fit_transform(X_train).astype(np.float32)
     X_val_t = preprocessor.transform(X_val).astype(np.float32)
     X_test_t = preprocessor.transform(X_test).astype(np.float32)
@@ -520,7 +432,12 @@ def main() -> None:
 
     # 5. Construcción del modelo
     LOGGER.info("Construyendo modelo MLP...")
-    model = build_model(input_dim=input_dim)
+    model = build_model(
+        input_dim=input_dim,
+        hidden_units=HIDDEN_UNITS,
+        dropout_rates=DROPOUT_RATES,
+        learning_rate=LEARNING_RATE,
+    )
     model.summary(print_fn=LOGGER.info)
 
     # Verificación de parámetros
