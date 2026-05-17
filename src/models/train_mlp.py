@@ -30,21 +30,38 @@ Artefactos generados:
 
 from __future__ import annotations
 
-import json
-import logging
+# TensorFlow tiene que importarse ANTES que sklearn/pandas/joblib en macOS ARM
+# con TF 2.21 + sklearn 1.5: la combinación de threadpools de OpenMP/BLAS que
+# levanta el preprocesador de sklearn deja a TF en deadlock indefinido durante
+# model.fit (Epoch 1 con 0% CPU). Mantén este bloque al principio del módulo.
 import os
 import random
-import time
-from pathlib import Path
-from typing import Any
 
-import joblib
-import matplotlib
+RANDOM_SEED = 42
+random.seed(RANDOM_SEED)
+os.environ["PYTHONHASHSEED"] = str(RANDOM_SEED)
+
+import numpy as np  # noqa: E402
+
+np.random.seed(RANDOM_SEED)
+
+import tensorflow as tf  # noqa: E402
+
+tf.keras.utils.set_random_seed(RANDOM_SEED)
+
+import json  # noqa: E402
+import logging  # noqa: E402
+import time  # noqa: E402
+from pathlib import Path  # noqa: E402
+from typing import Any  # noqa: E402
+
+import joblib  # noqa: E402
+import matplotlib  # noqa: E402
+
 matplotlib.use("Agg")
-import matplotlib.pyplot as plt
-import numpy as np
-import pandas as pd
-from sklearn.metrics import (
+import matplotlib.pyplot as plt  # noqa: E402
+import pandas as pd  # noqa: E402
+from sklearn.metrics import (  # noqa: E402
     ConfusionMatrixDisplay,
     auc,
     average_precision_score,
@@ -56,24 +73,15 @@ from sklearn.metrics import (
     roc_auc_score,
     roc_curve,
 )
-from sklearn.model_selection import train_test_split
-from sklearn.utils.class_weight import compute_class_weight
+from sklearn.model_selection import train_test_split  # noqa: E402
+from sklearn.utils.class_weight import compute_class_weight  # noqa: E402
 
-from src.models.mlp import build_model
-from src.models.pipelines import (
+from src.models.mlp import build_model  # noqa: E402
+from src.models.pipelines import (  # noqa: E402
     build_preprocessor_from_manifest,
     load_feature_groups,
 )
-
-# ─── Seeds fijas (antes de importar TF) ───────────────────────────────────────
-RANDOM_SEED = 42
-random.seed(RANDOM_SEED)
-np.random.seed(RANDOM_SEED)
-os.environ["PYTHONHASHSEED"] = str(RANDOM_SEED)
-
-import tensorflow as tf  # noqa: E402 — debe ir después del seed de numpy/random
-
-tf.keras.utils.set_random_seed(RANDOM_SEED)
+from src.models.threshold import tune_threshold  # noqa: E402
 
 # ─── Rutas del proyecto ───────────────────────────────────────────────────────
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -116,9 +124,14 @@ LEARNING_RATE = 1e-3
 def load_xgboost_baseline() -> dict[str, float]:
     """Lee las métricas de XGBoost en test desde reports/classical/xgboost.json.
 
-    La MLP las usa como punto de comparación. Requiere que `train_classical.py`
-    se haya ejecutado antes; si el JSON no existe, falla con un mensaje
-    accionable en vez de propagar un error opaco más adelante.
+    La MLP las usa como punto de comparación apples-to-apples: ambos modelos
+    se reportan al threshold óptimo tuneado en validación (regla anti-leakage
+    aplicada también a los clásicos desde el paso 3 del plan). AUC es
+    invariante al threshold.
+
+    Requiere que `train_classical.py` se haya ejecutado antes; si el JSON no
+    existe, falla con un mensaje accionable en vez de propagar un error
+    opaco más adelante.
     """
     xgb_path = REPORTS_DIR / "classical" / "xgboost.json"
     if not xgb_path.exists():
@@ -128,83 +141,9 @@ def load_xgboost_baseline() -> dict[str, float]:
         )
     data = json.loads(xgb_path.read_text())
     return {
-        "f1": data["test_metrics"]["f1"],
-        "auc_roc": data["test_metrics"]["auc_roc"],
-        "threshold": data["threshold"],
-    }
-
-
-# ─── Threshold tuning (skill: threshold-tuning) ───────────────────────────────
-
-def tune_threshold(
-    y_true: np.ndarray,
-    y_proba: np.ndarray,
-    thresholds: np.ndarray | None = None,
-) -> dict[str, Any]:
-    """Barrido de umbral sobre conjunto de VALIDACIÓN para maximizar F1.
-
-    REGLA CRÍTICA: Este procedimiento debe ejecutarse SOLO sobre validación,
-    NUNCA sobre test. El umbral óptimo se elige antes de ver el test.
-
-    Args:
-        y_true: Etiquetas reales (0/1) del conjunto de validación.
-        y_proba: Probabilidades predichas por el modelo sobre validación.
-        thresholds: Rango de umbrales a evaluar. Default: [0.01, 0.99] paso 0.01.
-
-    Returns:
-        Dict con:
-        - threshold_f1: umbral que maximiza F1 (criterio principal).
-        - threshold_youden: umbral óptimo por índice de Youden J (referencia).
-        - f1_at_threshold: F1 alcanzado en threshold_f1.
-        - precision_at_threshold: precisión en threshold_f1.
-        - recall_at_threshold: recall en threshold_f1.
-        - sweep_thresholds: array de umbrales evaluados.
-        - sweep_f1: array de F1 por umbral.
-        - sweep_precision: array de precision por umbral.
-        - sweep_recall: array de recall por umbral.
-    """
-    if thresholds is None:
-        thresholds = np.arange(0.01, 1.00, 0.01)
-
-    f1_scores = []
-    prec_scores = []
-    rec_scores = []
-
-    for t in thresholds:
-        y_pred = (y_proba >= t).astype(int)
-        f1_scores.append(f1_score(y_true, y_pred, zero_division=0))
-        prec_scores.append(precision_score(y_true, y_pred, zero_division=0))
-        rec_scores.append(recall_score(y_true, y_pred, zero_division=0))
-
-    f1_arr = np.array(f1_scores)
-    best_idx = int(np.argmax(f1_arr))
-    t_star = float(thresholds[best_idx])
-
-    # Youden J = Sensitivity + Specificity - 1 = TPR - FPR
-    fpr_arr, tpr_arr, roc_thresholds = roc_curve(y_true, y_proba)
-    youden_j = tpr_arr - fpr_arr
-    youden_idx = int(np.argmax(youden_j))
-    t_youden = float(roc_thresholds[youden_idx]) if youden_idx < len(roc_thresholds) else 0.5
-
-    LOGGER.info(
-        "Threshold óptimo (F1-max sobre val): t*=%.2f → F1=%.4f, Prec=%.4f, Rec=%.4f",
-        t_star,
-        f1_arr[best_idx],
-        prec_scores[best_idx],
-        rec_scores[best_idx],
-    )
-    LOGGER.info("Threshold Youden J (referencia): t_youden=%.2f", t_youden)
-
-    return {
-        "threshold_f1": t_star,
-        "threshold_youden": t_youden,
-        "f1_at_threshold": float(f1_arr[best_idx]),
-        "precision_at_threshold": float(prec_scores[best_idx]),
-        "recall_at_threshold": float(rec_scores[best_idx]),
-        "sweep_thresholds": thresholds.tolist(),
-        "sweep_f1": f1_arr.tolist(),
-        "sweep_precision": prec_scores,
-        "sweep_recall": rec_scores,
+        "f1": data["test_metrics_optimal"]["f1"],
+        "auc_roc": data["test_metrics_optimal"]["auc_roc"],
+        "threshold": data["threshold_optimal_f1"],
     }
 
 
