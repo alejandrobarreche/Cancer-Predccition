@@ -1,0 +1,175 @@
+{
+  "n_total": 50001,
+  "n_positivos": 9644,
+  "n_negativos": 40357,
+  "prevalencia_cancer": 0.1929,
+  "ratio_desbalance_1_a_N": 4.18,
+  "fuentes": {
+    "bioquimicos": {
+      "filas": 50001,
+      "columnas": 8,
+      "paciente_id_unicos": 50001,
+      "nulos": 0,
+      "cobertura_pct": 100.0
+    },
+    "clinicos": {
+      "filas": 50001,
+      "columnas": 8,
+      "paciente_id_unicos": 50001,
+      "nulos": 0,
+      "cobertura_pct": 100.0
+    },
+    "geneticos": {
+      "filas": 50001,
+      "columnas": 8,
+      "paciente_id_unicos": 50001,
+      "nulos": 0,
+      "cobertura_pct": 100.0
+    },
+    "economicos": {
+      "filas": 50001,
+      "columnas": 6,
+      "paciente_id_unicos": 50001,
+      "nulos": 0,
+      "cobertura_pct": 100.0
+    },
+    "generales": {
+      "filas": 50001,
+      "columnas": 5,
+      "paciente_id_unicos": 50001,
+      "nulos": 0,
+      "cobertura_pct": 100.0
+    },
+    "sociodemografico": {
+      "filas": 50001,
+      "columnas": 8,
+      "paciente_id_unicos": 50001,
+      "nulos": 0,
+      "cobertura_pct": 100.0
+    }
+  },
+  "joined_shape": [
+    50001,
+    38
+  ],
+  "nulos_joined": 0,
+  "correlaciones_con_cancer": {
+    "coste_total": 0.8907,
+    "dias_hospital": 0.8777,
+    "coste_farmaco": 0.8531,
+    "num_ingresos": 0.6435,
+    "vive": -0.3542,
+    "mut_BRCA1": 0.2186,
+    "fumador": 0.2167,
+    "obesidad": 0.1977,
+    "mut_TP53": 0.1871,
+    "mut_KRAS": 0.1665,
+    "glucosa": 0.1511,
+    "trigliceridos": 0.1086,
+    "hipertension": 0.1007,
+    "mut_EGFR": 0.0996,
+    "leucocitos": 0.0983,
+    "colesterol": 0.0874,
+    "diabetes": 0.076,
+    "hemoglobina": -0.0734,
+    "mut_PIK3CA": 0.0676,
+    "edad": 0.0542,
+    "mut_BRAF": 0.0478,
+    "epoc": 0.031,
+    "enfermedad_cardiaca": 0.0129,
+    "plaquetas": -0.0035,
+    "asma": 0.003,
+    "distancia_hospital_km": 0.001,
+    "creatinina": -0.0009,
+    "mut_ALK": -0.0005,
+    "num_hijos": -0.0004,
+    "alcohol": NaN
+  },
+  "lift_categoricas": {
+    "actividad_fisica": {
+      "Alta": 0.123,
+      "Baja": 0.2402,
+      "Moderada": 0.1719
+    },
+    "tipo_seguro": {
+      "Mixto": 0.1953,
+      "Privado": 0.3194,
+      "Publico": 0.1383
+    },
+    "nivel_educativo": {
+      "Primaria": 0.1898,
+      "Secundaria": 0.1934,
+      "Sin estudios": 0.1973,
+      "Universitario": 0.1934
+    },
+    "nivel_ingresos": {
+      "Alto": 0.1932,
+      "Bajo": 0.1909,
+      "Medio": 0.194,
+      "Muy bajo": 0.1933
+    },
+    "zona": {
+      "Rural": 0.1945,
+      "Semiurbana": 0.1935,
+      "Urbana": 0.192
+    },
+    "estado_civil": {
+      "Casado": 0.1927,
+      "Divorciado": 0.1876,
+      "Soltero": 0.1929,
+      "Viudo": 0.2004
+    }
+  },
+  "columnas_constantes": [
+    "alcohol (100% = 1)"
+  ],
+  "columnas_leakage_confirmado": [
+    "coste_total",
+    "coste_farmaco",
+    "num_ingresos",
+    "dias_hospital",
+    "vive"
+  ],
+  "features_candidatas_seguras": [
+    "glucosa",
+    "colesterol",
+    "trigliceridos",
+    "hemoglobina",
+    "leucocitos",
+    "plaquetas",
+    "creatinina",
+    "mut_BRCA1",
+    "mut_TP53",
+    "mut_EGFR",
+    "mut_KRAS",
+    "mut_PIK3CA",
+    "mut_ALK",
+    "mut_BRAF",
+    "fumador",
+    "actividad_fisica",
+    "edad"
+  ],
+  "features_valorar": [
+    "diabetes",
+    "hipertension",
+    "obesidad",
+    "enfermedad_cardiaca",
+    "asma",
+    "epoc",
+    "nivel_educativo",
+    "nivel_ingresos",
+    "zona",
+    "estado_civil",
+    "num_hijos",
+    "distancia_hospital_km",
+    "tipo_seguro"
+  ],
+  "features_excluir": [
+    "alcohol",
+    "vive",
+    "coste_total",
+    "coste_farmaco",
+    "num_ingresos",
+    "dias_hospital"
+  ]
+}
