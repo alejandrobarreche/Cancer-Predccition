@@ -71,7 +71,11 @@ src/
   models/      # Entrenamiento de ML clásico y MLP
   app/         # Aplicación Streamlit con informe interactivo
 notebooks/     # Exploración y ETL (vía celdas SQL nativas)
-reports/       # Resultados serializados (JSON, PNG)
+reports/       # Resultados serializados organizados por fase
+  eda/         # memo.md, report.json, generate_figures.py + figures/
+  classical/   # results.json (global) + {model}.json + figures/
+  mlp/         # results.json, train.log + figures/
+  comparison/  # figures/ con comparativas entre modelos
   slides/      # Entregable final (.pptx o .pdf, 5 slides)
 tests/         # pytest
 models/        # Modelos serializados (.keras, .pkl)

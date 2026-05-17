@@ -11,8 +11,9 @@ Protocolo:
 - GridSearchCV con StratifiedKFold(n_splits=5), scoring='f1'.
 - Reentrenamiento sobre X_train+X_val con los mejores hiperparámetros.
 - Evaluación sobre test UNA SOLA VEZ por modelo.
-- Resultados guardados en reports/classical_results.json.
-- Figuras en reports/figures/.
+- Resultados globales en reports/classical/results.json y por-modelo en
+  reports/classical/{model}.json.
+- Figuras en reports/classical/figures/.
 - Modelos serializados en models/.
 """
 
@@ -83,7 +84,7 @@ VAL_SIZE = 0.20
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 DATA_DIR = PROJECT_ROOT / "data" / "processed"
 MODELS_DIR = PROJECT_ROOT / "models"
-REPORTS_DIR = PROJECT_ROOT / "reports"
+REPORTS_DIR = PROJECT_ROOT / "reports" / "classical"
 FIGURES_DIR = REPORTS_DIR / "figures"
 
 TARGET = "cancer"
@@ -651,7 +652,7 @@ def main() -> None:
 
         # Guardar también JSON individual
         model_key = safe_name
-        individual_result_path = REPORTS_DIR / f"{safe_name}_results.json"
+        individual_result_path = REPORTS_DIR / f"{safe_name}.json"
 
         # Obtener importancias de features
         final_pipeline = result["_pipeline"]
@@ -703,24 +704,24 @@ def main() -> None:
 
     plot_roc_comparison(
         models_data=comparison_data,
-        output_path=FIGURES_DIR / "classical_roc_comparison.png",
+        output_path=FIGURES_DIR / "comparison_roc.png",
     )
 
     plot_pr_comparison(
         models_data=comparison_data,
-        output_path=FIGURES_DIR / "classical_pr_comparison.png",
+        output_path=FIGURES_DIR / "comparison_pr.png",
     )
 
     plot_metrics_barplot(
         results=all_results,
-        output_path=FIGURES_DIR / "classical_metrics_barplot.png",
+        output_path=FIGURES_DIR / "comparison_metrics.png",
     )
 
     # -----------------------------------------------------------------------
     # JSON global
     # -----------------------------------------------------------------------
 
-    global_results_path = REPORTS_DIR / "classical_results.json"
+    global_results_path = REPORTS_DIR / "results.json"
     with open(global_results_path, "w", encoding="utf-8") as f:
         json.dump(all_results, f, indent=2, ensure_ascii=False)
 

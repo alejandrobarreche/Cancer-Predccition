@@ -35,8 +35,8 @@ cells.append(md_cell(
     "Este notebook documenta el EDA completo sobre las 6 fuentes de datos unidas por `paciente_id`.  \n"
     "Entregables generados en la misma ejecucion:\n"
     "- `data/interim/joined.csv` — dataset unido sin imputacion (50 001 filas x 38 columnas)\n"
-    "- `reports/eda_report.json` — resumen estadistico maquina-legible\n"
-    "- `reports/figures/fig01-fig10` — figuras del analisis\n"
+    "- `reports/eda/report.json` — resumen estadistico maquina-legible\n"
+    "- `reports/eda/figures/01-10` — figuras del analisis\n"
     "\n"
     "**No se realiza imputation, split ni escalado** — esas operaciones corresponden "
     "a `src/features/preprocess.py` post-split.\n"
@@ -182,14 +182,14 @@ cells.append(code_cell(
 cells.append(md_cell(
     "## 8. Generacion de figuras\n"
     "\n"
-    "Se generan 10 figuras PNG en `reports/figures/`. "
+    "Se generan 10 figuras PNG en `reports/eda/figures/`. "
     "Para verlas en Jupyter interactivo, cambiar `matplotlib.use('Agg')` por `%matplotlib inline`.\n"
 ))
 cells.append(code_cell(
     "# Ejecutar reports/generate_eda_figures.py para regenerar las figuras\n"
     "import subprocess, sys\n"
     "result = subprocess.run(\n"
-    "    [sys.executable, str(BASE / 'reports' / 'generate_eda_figures.py')],\n"
+    "    [sys.executable, str(BASE / 'reports' / 'eda' / 'generate_figures.py')],\n"
     "    capture_output=True, text=True\n"
     ")\n"
     "print(result.stdout)\n"

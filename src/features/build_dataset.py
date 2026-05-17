@@ -1,6 +1,6 @@
 """Construye `data/processed/{train,test}.csv` a partir de `data/interim/joined.csv`.
 
-Decisiones (ver `reports/eda_memo.md`):
+Decisiones (ver `reports/eda/memo.md`):
 - Excluye leakage post-diagnostico: coste_total, coste_farmaco, num_ingresos,
   dias_hospital, vive.
 - Excluye `alcohol` (varianza cero) y `paciente_id` (identificador).

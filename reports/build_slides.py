@@ -6,10 +6,10 @@ Uso:
     conda run -n uax-tf python reports/build_slides.py
 
 Entradas (leídas, no generadas aquí):
-    reports/eda_report.json
-    reports/classical_results.json
-    reports/mlp_results.json
-    reports/figures/*.png
+    reports/eda/report.json
+    reports/classical/results.json
+    reports/mlp/results.json
+    reports/{eda,classical,mlp,comparison}/figures/*.png
 
 Salida:
     reports/slides/cancer_uax.pptx
@@ -28,19 +28,22 @@ from pptx.util import Inches, Pt
 # ── Rutas ──────────────────────────────────────────────────────────────────
 BASE = Path(__file__).resolve().parents[1]
 REPORTS = BASE / "reports"
-FIGS = REPORTS / "figures"
+EDA_FIGS        = REPORTS / "eda"        / "figures"
+CLASSICAL_FIGS  = REPORTS / "classical"  / "figures"
+MLP_FIGS        = REPORTS / "mlp"        / "figures"
+COMPARISON_FIGS = REPORTS / "comparison" / "figures"
 OUT_DIR = REPORTS / "slides"
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 OUT_FILE = OUT_DIR / "cancer_uax.pptx"
 
 # ── Carga de datos ─────────────────────────────────────────────────────────
-with open(REPORTS / "eda_report.json") as f:
+with open(REPORTS / "eda" / "report.json") as f:
     eda = json.load(f)
 
-with open(REPORTS / "classical_results.json") as f:
+with open(REPORTS / "classical" / "results.json") as f:
     classical = json.load(f)
 
-with open(REPORTS / "mlp_results.json") as f:
+with open(REPORTS / "mlp" / "results.json") as f:
     mlp = json.load(f)
 
 # Índice rápido por modelo
@@ -325,7 +328,7 @@ def build_slide_1(prs):
     img_y = Inches(1.25)
     img_w = Inches(6.0)
     img_h = Inches(5.2)
-    add_image(slide, FIGS / "fig01_target_distribution.png",
+    add_image(slide, EDA_FIGS / "01_target_distribution.png",
               img_x, img_y, img_w, img_h)
 
     add_footer(slide, 1)
@@ -384,7 +387,7 @@ def build_slide_2(prs):
     add_textbox(slide, Inches(7.05), content_top, Inches(5.8), Inches(0.35),
                 "Correlacion con cancer (variables leakage en rojo)",
                 font_size=Pt(14), bold=True, color=C_AZUL_UAX)
-    add_image(slide, FIGS / "fig07_leakage_warning.png",
+    add_image(slide, EDA_FIGS / "07_leakage_warning.png",
               Inches(7.05), Inches(1.65), Inches(5.9), Inches(5.5))
 
     add_footer(slide, 2)
@@ -464,7 +467,7 @@ def build_slide_3(prs):
                    items=features_items)
 
     # Imagen ROC comparison
-    add_image(slide, FIGS / "classical_roc_comparison.png",
+    add_image(slide, CLASSICAL_FIGS / "comparison_roc.png",
               Inches(8.75), Inches(1.25), Inches(4.2), Inches(5.8))
 
     add_footer(slide, 3)
@@ -541,11 +544,11 @@ def build_slide_4(prs):
                    items=thresh_items)
 
     # Imagen threshold sweep
-    add_image(slide, FIGS / "mlp_threshold_sweep.png",
+    add_image(slide, MLP_FIGS / "threshold_sweep.png",
               Inches(6.3), Inches(4.05), Inches(3.6), Inches(3.1))
 
     # Columna derecha: curvas loss
-    add_image(slide, FIGS / "mlp_loss_curve.png",
+    add_image(slide, MLP_FIGS / "loss_curve.png",
               Inches(10.0), Inches(1.25), Inches(3.0), Inches(6.0))
 
     add_footer(slide, 4)
@@ -628,7 +631,7 @@ def build_slide_5(prs):
                 rec_text, font_size=Pt(13), color=C_GRIS_TEXTO)
 
     # Columna derecha: imagen comparacion + proximos pasos
-    add_image(slide, FIGS / "final_models_comparison.png",
+    add_image(slide, COMPARISON_FIGS / "mlp_vs_xgboost.png",
               Inches(7.65), Inches(1.25), Inches(5.4), Inches(3.8))
 
     add_textbox(slide, Inches(7.65), Inches(5.15), Inches(5.4), Inches(0.35),

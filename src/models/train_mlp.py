@@ -16,15 +16,16 @@ Ejecutar:
 Artefactos generados:
     models/mlp.keras
     models/mlp_preprocessor.pkl
-    reports/mlp_results.json
-    reports/figures/mlp_loss_curve.png
-    reports/figures/mlp_auc_curve.png
-    reports/figures/mlp_threshold_sweep.png
-    reports/figures/mlp_roc.png
-    reports/figures/mlp_pr.png
-    reports/figures/mlp_cm_default.png
-    reports/figures/mlp_cm_optimal.png
-    reports/figures/final_models_comparison.png
+    reports/mlp/results.json
+    reports/mlp/train.log
+    reports/mlp/figures/loss_curve.png
+    reports/mlp/figures/auc_curve.png
+    reports/mlp/figures/threshold_sweep.png
+    reports/mlp/figures/roc.png
+    reports/mlp/figures/pr.png
+    reports/mlp/figures/cm_default.png
+    reports/mlp/figures/cm_optimal.png
+    reports/comparison/figures/mlp_vs_xgboost.png
 """
 
 from __future__ import annotations
@@ -75,10 +76,13 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 DATA_DIR = PROJECT_ROOT / "data" / "processed"
 MODELS_DIR = PROJECT_ROOT / "models"
 REPORTS_DIR = PROJECT_ROOT / "reports"
-FIGURES_DIR = REPORTS_DIR / "figures"
+MLP_DIR = REPORTS_DIR / "mlp"
+FIGURES_DIR = MLP_DIR / "figures"
+COMPARISON_FIGURES_DIR = REPORTS_DIR / "comparison" / "figures"
 
 MODELS_DIR.mkdir(parents=True, exist_ok=True)
 FIGURES_DIR.mkdir(parents=True, exist_ok=True)
+COMPARISON_FIGURES_DIR.mkdir(parents=True, exist_ok=True)
 
 # ─── Logging ──────────────────────────────────────────────────────────────────
 logging.basicConfig(
@@ -86,7 +90,7 @@ logging.basicConfig(
     format="%(asctime)s [%(levelname)s] %(name)s — %(message)s",
     handlers=[
         logging.StreamHandler(),
-        logging.FileHandler(REPORTS_DIR / "train_mlp.log", mode="w"),
+        logging.FileHandler(MLP_DIR / "train.log", mode="w"),
     ],
 )
 LOGGER = logging.getLogger(__name__)
@@ -312,7 +316,7 @@ def plot_training_curves(history: dict, figures_dir: Path) -> None:
     ax.set_title("Loss por época — MLP")
     ax.legend()
     fig.tight_layout()
-    fig.savefig(figures_dir / "mlp_loss_curve.png", dpi=150)
+    fig.savefig(figures_dir / "loss_curve.png", dpi=150)
     plt.close(fig)
 
     # AUC curve
@@ -324,7 +328,7 @@ def plot_training_curves(history: dict, figures_dir: Path) -> None:
     ax.set_title("AUC-ROC por época — MLP")
     ax.legend()
     fig.tight_layout()
-    fig.savefig(figures_dir / "mlp_auc_curve.png", dpi=150)
+    fig.savefig(figures_dir / "auc_curve.png", dpi=150)
     plt.close(fig)
 
     LOGGER.info("Curvas de entrenamiento guardadas en %s", figures_dir)
@@ -346,7 +350,7 @@ def plot_threshold_sweep(sweep_result: dict, figures_dir: Path) -> None:
     ax.legend()
     ax.grid(True, alpha=0.3)
     fig.tight_layout()
-    fig.savefig(figures_dir / "mlp_threshold_sweep.png", dpi=150)
+    fig.savefig(figures_dir / "threshold_sweep.png", dpi=150)
     plt.close(fig)
 
     LOGGER.info("Threshold sweep guardado.")
@@ -367,7 +371,7 @@ def plot_roc_curve(y_true: np.ndarray, y_proba: np.ndarray, figures_dir: Path) -
     ax.set_title("Curva ROC — Test")
     ax.legend(loc="lower right")
     fig.tight_layout()
-    fig.savefig(figures_dir / "mlp_roc.png", dpi=150)
+    fig.savefig(figures_dir / "roc.png", dpi=150)
     plt.close(fig)
 
 
@@ -384,7 +388,7 @@ def plot_pr_curve(y_true: np.ndarray, y_proba: np.ndarray, figures_dir: Path) ->
     ax.legend(loc="upper right")
     ax.grid(True, alpha=0.3)
     fig.tight_layout()
-    fig.savefig(figures_dir / "mlp_pr.png", dpi=150)
+    fig.savefig(figures_dir / "pr.png", dpi=150)
     plt.close(fig)
 
 
@@ -446,7 +450,7 @@ def plot_models_comparison(
     ax.legend()
     ax.grid(True, axis="y", alpha=0.3)
     fig.tight_layout()
-    fig.savefig(figures_dir / "final_models_comparison.png", dpi=150)
+    fig.savefig(figures_dir / "mlp_vs_xgboost.png", dpi=150)
     plt.close(fig)
 
     LOGGER.info("Comparación de modelos guardada.")
@@ -653,15 +657,15 @@ def main() -> None:
 
     y_test_pred_default = (y_test_proba >= 0.5).astype(int)
     y_test_pred_optimal = (y_test_proba >= t_star).astype(int)
-    plot_confusion_matrix(y_test, y_test_pred_default, "MLP (t=0.5)", FIGURES_DIR / "mlp_cm_default.png")
-    plot_confusion_matrix(y_test, y_test_pred_optimal, f"MLP (t={t_star:.2f})", FIGURES_DIR / "mlp_cm_optimal.png")
+    plot_confusion_matrix(y_test, y_test_pred_default, "MLP (t=0.5)", FIGURES_DIR / "cm_default.png")
+    plot_confusion_matrix(y_test, y_test_pred_optimal, f"MLP (t={t_star:.2f})", FIGURES_DIR / "cm_optimal.png")
 
     plot_models_comparison(
         mlp_f1=test_metrics_optimal["f1"],
         mlp_auc=test_metrics_optimal["auc_roc"],
         xgb_f1=XGBOOST_TEST_F1,
         xgb_auc=XGBOOST_TEST_AUC,
-        figures_dir=FIGURES_DIR,
+        figures_dir=COMPARISON_FIGURES_DIR,
     )
 
     # 12. Guardar modelo
@@ -723,7 +727,7 @@ def main() -> None:
         "training_history": history_serializable,
     }
 
-    results_path = REPORTS_DIR / "mlp_results.json"
+    results_path = MLP_DIR / "results.json"
     with open(results_path, "w", encoding="utf-8") as f:
         json.dump(results, f, indent=2, ensure_ascii=False)
     LOGGER.info("Resultados guardados en %s", results_path)
@@ -765,15 +769,16 @@ def main() -> None:
     print(f"  F1:     XGB={XGBOOST_TEST_F1:.4f}  MLP={test_metrics_optimal['f1']:.4f}  ({delta_f1:+.4f})")
     print(f"  AUC:    XGB={XGBOOST_TEST_AUC:.4f}  MLP={test_metrics_optimal['auc_roc']:.4f}  ({delta_auc:+.4f})")
     print(f"\nArtefactos:")
-    print(f"  reports/mlp_results.json")
-    print(f"  reports/figures/mlp_loss_curve.png")
-    print(f"  reports/figures/mlp_auc_curve.png")
-    print(f"  reports/figures/mlp_threshold_sweep.png")
-    print(f"  reports/figures/mlp_roc.png")
-    print(f"  reports/figures/mlp_pr.png")
-    print(f"  reports/figures/mlp_cm_default.png")
-    print(f"  reports/figures/mlp_cm_optimal.png")
-    print(f"  reports/figures/final_models_comparison.png")
+    print(f"  reports/mlp/results.json")
+    print(f"  reports/mlp/train.log")
+    print(f"  reports/mlp/figures/loss_curve.png")
+    print(f"  reports/mlp/figures/auc_curve.png")
+    print(f"  reports/mlp/figures/threshold_sweep.png")
+    print(f"  reports/mlp/figures/roc.png")
+    print(f"  reports/mlp/figures/pr.png")
+    print(f"  reports/mlp/figures/cm_default.png")
+    print(f"  reports/mlp/figures/cm_optimal.png")
+    print(f"  reports/comparison/figures/mlp_vs_xgboost.png")
     print(f"  models/mlp.keras")
     print(f"  models/mlp_preprocessor.pkl")
     print("=" * 60)

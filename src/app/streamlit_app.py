@@ -21,7 +21,10 @@ import streamlit as st
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 REPORTS = PROJECT_ROOT / "reports"
-FIGURES = REPORTS / "figures"
+EDA_FIGS        = REPORTS / "eda"        / "figures"
+CLASSICAL_FIGS  = REPORTS / "classical"  / "figures"
+MLP_FIGS        = REPORTS / "mlp"        / "figures"
+COMPARISON_FIGS = REPORTS / "comparison" / "figures"
 PROCESSED = PROJECT_ROOT / "data" / "processed"
 MODELS = PROJECT_ROOT / "models"
 
@@ -72,22 +75,22 @@ CATEGORICAL_LEVELS: dict[str, list[str]] = {
 
 @st.cache_data
 def load_eda() -> dict[str, Any]:
-    return json.loads((REPORTS / "eda_report.json").read_text())
+    return json.loads((REPORTS / "eda" / "report.json").read_text())
 
 
 @st.cache_data
 def load_classical() -> list[dict[str, Any]]:
-    return json.loads((REPORTS / "classical_results.json").read_text())
+    return json.loads((REPORTS / "classical" / "results.json").read_text())
 
 
 @st.cache_data
 def load_mlp() -> dict[str, Any]:
-    return json.loads((REPORTS / "mlp_results.json").read_text())
+    return json.loads((REPORTS / "mlp" / "results.json").read_text())
 
 
 @st.cache_data
 def load_eda_memo() -> str:
-    path = REPORTS / "eda_memo.md"
+    path = REPORTS / "eda" / "memo.md"
     return path.read_text() if path.exists() else ""
 
 
@@ -151,16 +154,11 @@ def metrics_table(metrics: dict[str, Any], threshold_label: str) -> pd.DataFrame
     )
 
 
-def fig_path(name: str) -> Path:
-    return FIGURES / name
-
-
-def show_figure(name: str, caption: str | None = None) -> None:
-    p = fig_path(name)
-    if p.exists():
-        st.image(str(p), caption=caption, use_container_width=True)
+def show_figure(path: Path, caption: str | None = None) -> None:
+    if path.exists():
+        st.image(str(path), caption=caption, use_container_width=True)
     else:
-        st.info(f"Figura no disponible: {name}")
+        st.info(f"Figura no disponible: {path.relative_to(REPORTS)}")
 
 
 # ----------------------------------------------------------------------------
@@ -238,13 +236,14 @@ def page_resumen() -> None:
             """
             La aplicación se construye sobre los artefactos generados por el pipeline
             reproducible del proyecto. Todas las cifras mostradas se leen directamente de los
-            ficheros JSON serializados en `reports/` y de las figuras en `reports/figures/`.
-            No se reentrena ningún modelo dentro de esta interfaz.
+            ficheros JSON serializados en `reports/` (organizados por fase: `eda/`,
+            `classical/`, `mlp/`, `comparison/`) y de las figuras en sus respectivos
+            subdirectorios `figures/`. No se reentrena ningún modelo dentro de esta interfaz.
 
             **Documentación adicional:**
-            - `reports/eda_memo.md` — informe técnico del análisis exploratorio.
-            - `reports/classical_results.json` — métricas detalladas de los 4 modelos clásicos.
-            - `reports/mlp_results.json` — historial de entrenamiento, threshold tuning y métricas
+            - `reports/eda/memo.md` — informe técnico del análisis exploratorio.
+            - `reports/classical/results.json` — métricas detalladas de los 4 modelos clásicos.
+            - `reports/mlp/results.json` — historial de entrenamiento, threshold tuning y métricas
               en validación y prueba de la red neuronal MLP.
             - `reports/slides/cancer_uax.pptx` — presentación ejecutiva en 5 diapositivas.
             """
@@ -282,15 +281,15 @@ def page_cohorte() -> None:
     st.dataframe(fuentes_df, use_container_width=True, hide_index=True)
 
     st.subheader("Distribución del desenlace")
-    show_figure("fig01_target_distribution.png",
+    show_figure(EDA_FIGS / "01_target_distribution.png",
                 "Distribución de la variable objetivo en la cohorte completa.")
 
     st.subheader("Distribuciones bioquímicas condicionadas")
-    show_figure("fig02_bioquimicos_dist.png",
+    show_figure(EDA_FIGS / "02_bioquimicos_dist.png",
                 "Distribuciones de las variables bioquímicas estratificadas por desenlace.")
 
     st.subheader("Variables sociodemográficas continuas")
-    show_figure("fig08_sociodem_num.png",
+    show_figure(EDA_FIGS / "08_sociodem_num.png",
                 "Distribuciones de edad, número de hijos y distancia al hospital.")
 
     with st.expander("Notas metodológicas sobre la unión de fuentes"):
@@ -335,7 +334,7 @@ def page_seleccion() -> None:
     )
     leakage["Correlación con desenlace"] = leakage["Correlación con desenlace"].apply(lambda x: f"{x:+.4f}")
     st.dataframe(leakage, use_container_width=True, hide_index=True)
-    show_figure("fig09_economicos_leakage.png",
+    show_figure(EDA_FIGS / "09_economicos_leakage.png",
                 "Correlación de las variables económicas con el desenlace, indicativo de fuga.")
 
     st.subheader("Variables sin varianza")
@@ -359,23 +358,23 @@ def page_seleccion() -> None:
     safe_df["Correlación con desenlace"] = safe_df["Correlación con desenlace"].apply(lambda x: f"{x:+.4f}")
     st.dataframe(safe_df, use_container_width=True, hide_index=True)
 
-    show_figure("fig10_feature_signal.png",
+    show_figure(EDA_FIGS / "10_feature_signal.png",
                 "Magnitud de señal por variable (correlación absoluta con el desenlace).")
 
     st.subheader("Asociaciones genéticas")
-    show_figure("fig03_geneticos_lift.png",
+    show_figure(EDA_FIGS / "03_geneticos_lift.png",
                 "Razón de prevalencia condicionada a la presencia de cada mutación germinal.")
 
     st.subheader("Asociaciones de comorbilidades clínicas")
-    show_figure("fig04_clinicos_lift.png",
+    show_figure(EDA_FIGS / "04_clinicos_lift.png",
                 "Razón de prevalencia condicionada a comorbilidades clínicas.")
 
     st.subheader("Variables categóricas — gradientes observados")
-    show_figure("fig05_categorical_lift.png",
+    show_figure(EDA_FIGS / "05_categorical_lift.png",
                 "Prevalencia del desenlace por categoría dentro de cada variable.")
 
     st.subheader("Estructura de correlaciones del conjunto unido")
-    show_figure("fig06_corr_heatmap.png",
+    show_figure(EDA_FIGS / "06_corr_heatmap.png",
                 "Mapa de calor de correlaciones de Pearson entre variables candidatas.")
 
     st.subheader("Conjunto final de variables")
@@ -442,15 +441,15 @@ def page_clasicos() -> None:
                f"(F1 = {df.iloc[0]['F1']:.4f}, AUC-ROC = {df.iloc[0]['AUC-ROC']:.4f}).")
 
     st.subheader("Curvas características receptor-operador")
-    show_figure("classical_roc_comparison.png",
+    show_figure(CLASSICAL_FIGS / "comparison_roc.png",
                 "Curvas ROC comparadas de los cuatro modelos clásicos sobre el conjunto de prueba.")
 
     st.subheader("Curvas precisión-sensibilidad")
-    show_figure("classical_pr_comparison.png",
+    show_figure(CLASSICAL_FIGS / "comparison_pr.png",
                 "Curvas precisión-recall comparadas sobre el conjunto de prueba.")
 
     st.subheader("Métricas comparadas en formato gráfico")
-    show_figure("classical_metrics_barplot.png",
+    show_figure(CLASSICAL_FIGS / "comparison_metrics.png",
                 "F1 y AUC-ROC por modelo (umbral 0,50).")
 
     st.markdown("---")
@@ -470,7 +469,7 @@ def page_clasicos() -> None:
                 st.metric("Tiempo de entrenamiento", f"{m['training_time_seconds']:.2f} s")
             with cols[1]:
                 st.markdown("**Matriz de confusión (test)**")
-                cm_path = fig_path(f"{m['model_key']}_cm.png")
+                cm_path = CLASSICAL_FIGS / f"{m['model_key']}_cm.png"
                 if cm_path.exists():
                     st.image(str(cm_path), use_container_width=True)
                 else:
@@ -544,10 +543,10 @@ def page_mlp() -> None:
     st.subheader("Curvas de aprendizaje")
     cols = st.columns(2)
     with cols[0]:
-        show_figure("mlp_loss_curve.png",
+        show_figure(MLP_FIGS / "loss_curve.png",
                     "Pérdida en entrenamiento y validación por época.")
     with cols[1]:
-        show_figure("mlp_auc_curve.png",
+        show_figure(MLP_FIGS / "auc_curve.png",
                     "AUC-ROC en validación por época.")
 
     st.markdown("---")
@@ -567,7 +566,7 @@ def page_mlp() -> None:
         con ambos puntos de corte.
         """
     )
-    show_figure("mlp_threshold_sweep.png",
+    show_figure(MLP_FIGS / "threshold_sweep.png",
                 "Barrido de F1, precisión y sensibilidad frente al punto de corte sobre validación.")
 
     st.markdown("---")
@@ -593,16 +592,16 @@ def page_mlp() -> None:
     st.subheader("Curva ROC y curva precisión-recall (test)")
     cols = st.columns(2)
     with cols[0]:
-        show_figure("mlp_roc.png", "Curva ROC sobre el conjunto de prueba.")
+        show_figure(MLP_FIGS / "roc.png", "Curva ROC sobre el conjunto de prueba.")
     with cols[1]:
-        show_figure("mlp_pr.png", "Curva precisión-recall sobre el conjunto de prueba.")
+        show_figure(MLP_FIGS / "pr.png", "Curva precisión-recall sobre el conjunto de prueba.")
 
     st.subheader("Matrices de confusión (test)")
     cols = st.columns(2)
     with cols[0]:
-        show_figure("mlp_cm_default.png", "Umbral por defecto (0,50).")
+        show_figure(MLP_FIGS / "cm_default.png", "Umbral por defecto (0,50).")
     with cols[1]:
-        show_figure("mlp_cm_optimal.png",
+        show_figure(MLP_FIGS / "cm_optimal.png",
                     f"Umbral óptimo seleccionado en validación ({mlp['threshold_optimal_f1']:.2f}).")
 
 
@@ -647,7 +646,7 @@ def page_comparativa() -> None:
         use_container_width=True, hide_index=True,
     )
 
-    show_figure("final_models_comparison.png",
+    show_figure(COMPARISON_FIGS / "mlp_vs_xgboost.png",
                 "Comparativa de F1 y AUC-ROC entre el modelo clásico de referencia y la MLP.")
 
     st.markdown("---")
@@ -901,12 +900,11 @@ def page_metodologia() -> None:
 
         ### Reproducibilidad
 
-        - Entorno conda: `uax-tf` (Python 3.12, TensorFlow 2.21).
+        - Entorno conda: `uax-tf` (Python 3.12, TensorFlow 2.x).
         - Pipeline reproducible mediante los scripts en `src/features/build_dataset.py`,
           `src/models/train_classical.py` y `src/models/train_mlp.py`.
         - Modelos serializados en `models/`.
-        - Resultados serializados en `reports/*.json`.
-        - Figuras serializadas en `reports/figures/`.
+        - Resultados y figuras serializados por fase en `reports/{eda,classical,mlp,comparison}/`.
 
         ### Estructura del repositorio
 
@@ -916,13 +914,15 @@ def page_metodologia() -> None:
           interim/     Tras la unión por paciente_id
           processed/   train.csv, test.csv y feature_groups.json
         src/
-          etl/         Conexión a Azure y extracción
           features/    Preprocesado y construcción del dataset
           models/      Entrenamiento de ML clásico y MLP
           app/         Aplicación Streamlit (este informe)
-        notebooks/     Exploración interactiva
+        notebooks/     ETL desde Azure y exploración
         reports/
-          figures/     Gráficos serializados
+          eda/         Informe del EDA + figuras
+          classical/   Resultados y figuras de los modelos clásicos
+          mlp/         Resultados, log y figuras de la MLP
+          comparison/  Figuras comparativas entre modelos
           slides/      Entregable final (cancer_uax.pptx)
         models/        Modelos serializados (.keras, .pkl)
         ```

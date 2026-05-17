@@ -61,11 +61,13 @@ src/
   app/
     streamlit_app.py    # Informe interactivo + estimador de riesgo
 reports/
-  figures/         # Todos los PNG generados por el pipeline
+  eda/             # Informe (memo.md), report.json, generate_figures.py + figures/
+  classical/       # results.json global, {model}.json por modelo + figures/
+  mlp/             # results.json, train.log + figures/
+  comparison/      # figures/ con comparativas entre modelos (p. ej. MLP vs XGBoost)
   slides/          # Entregable .pptx
-  eda_memo.md      # Informe técnico del EDA
-  *_results.json   # Métricas serializadas (formato ml-evaluation-protocol)
   build_slides.py  # Generador de las 5 diapositivas
+  build_notebook.py# Andamiaje para regenerar notebooks/02_eda.ipynb
 models/            # Modelos serializados .keras / .pkl (gitignored)
 tests/             # pytest
 ```
@@ -94,7 +96,7 @@ La extracción se hace desde **celdas SQL nativas en PyCharm** apuntando al Data
 # 1. Extracción (en PyCharm, abrir el notebook y ejecutar las celdas SQL)
 notebooks/01_etl_azure.ipynb
 
-# 2. EDA (opcional — el informe ya está en reports/eda_memo.md)
+# 2. EDA (opcional — el informe ya está en reports/eda/memo.md)
 notebooks/02_eda.ipynb
 
 # 3. Construcción del dataset de train/test
@@ -156,8 +158,9 @@ Detalle en `CLAUDE.md`.
 
 El pipeline está completo y se itera sobre arquitectura, hiperparámetros y selección de features. Los resultados actuales viven en:
 
-- `reports/*_results.json` — métricas por modelo en el formato oficial del proyecto (`ml-evaluation-protocol`).
-- `reports/figures/` — todas las curvas, matrices de confusión y comparativas.
+- `reports/classical/results.json` y `reports/classical/{model}.json` — métricas de cada clásico.
+- `reports/mlp/results.json` — métricas e historial de la MLP.
+- `reports/{eda,classical,mlp,comparison}/figures/` — curvas, matrices de confusión y comparativas por fase.
 - `reports/slides/cancer_uax.pptx` — entregable final.
 
 Para ver los resultados de forma interactiva: `streamlit run src/app/streamlit_app.py`.

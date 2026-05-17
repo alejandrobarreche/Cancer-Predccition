@@ -1,6 +1,6 @@
 """
 EDA Figure generation script.
-Run with: conda run -n uax-tf python3 reports/generate_eda_figures.py
+Run with: conda run -n uax-tf python3 reports/eda/generate_figures.py
 """
 import pandas as pd
 import numpy as np
@@ -15,8 +15,10 @@ np.random.seed(42)
 sns.set_theme(style='whitegrid', palette='muted')
 plt.rcParams['figure.dpi'] = 120
 
-BASE  = Path('/Users/barrechee/School/Universidad/3/UAX/2/Inteligencia-Artificial/Casos/Prediccion-Cancer')
-FIG   = BASE / 'reports' / 'figures'
+BASE    = Path(__file__).resolve().parents[2]
+EDA_DIR = BASE / 'reports' / 'eda'
+FIG     = EDA_DIR / 'figures'
+RAW_DIR = BASE / 'data' / 'raw'
 FIG.mkdir(parents=True, exist_ok=True)
 
 joined = pd.read_csv(BASE / 'data' / 'interim' / 'joined.csv')
@@ -42,7 +44,7 @@ axes[1].pie(
 )
 axes[1].set_title(f'Ratio desbalance 1:{ratio:.2f}')
 plt.tight_layout()
-plt.savefig(str(FIG / 'fig01_target_distribution.png'), bbox_inches='tight')
+plt.savefig(str(FIG / '01_target_distribution.png'), bbox_inches='tight')
 plt.close()
 print("fig01 saved")
 
@@ -64,7 +66,7 @@ for i, c in enumerate(bioq_feats):
     axes[1, i].set_title(f'{c}\nboxplot', fontsize=7)
 plt.suptitle('Bioquimicos - distribucion por cancer', fontsize=11)
 plt.tight_layout()
-plt.savefig(str(FIG / 'fig02_bioquimicos_dist.png'), bbox_inches='tight')
+plt.savefig(str(FIG / '02_bioquimicos_dist.png'), bbox_inches='tight')
 plt.close()
 print("fig02 saved")
 
@@ -84,7 +86,7 @@ ax.set_ylabel('P(cancer=1) %')
 ax.set_title('Tasa de cancer por mutacion genetica')
 ax.legend()
 plt.tight_layout()
-plt.savefig(str(FIG / 'fig03_geneticos_lift.png'), bbox_inches='tight')
+plt.savefig(str(FIG / '03_geneticos_lift.png'), bbox_inches='tight')
 plt.close()
 print("fig03 saved")
 
@@ -103,7 +105,7 @@ ax.set_ylabel('P(cancer=1) %')
 ax.set_title('Tasa de cancer por comorbilidad clinica')
 ax.legend()
 plt.tight_layout()
-plt.savefig(str(FIG / 'fig04_clinicos_lift.png'), bbox_inches='tight')
+plt.savefig(str(FIG / '04_clinicos_lift.png'), bbox_inches='tight')
 plt.close()
 print("fig04 saved")
 
@@ -127,7 +129,7 @@ for feat, ax in cat_plot:
                 f'{val:.1f}%', ha='center', fontsize=8)
 plt.suptitle('Lift de cancer por variables categoricas', fontsize=12)
 plt.tight_layout()
-plt.savefig(str(FIG / 'fig05_categorical_lift.png'), bbox_inches='tight')
+plt.savefig(str(FIG / '05_categorical_lift.png'), bbox_inches='tight')
 plt.close()
 print("fig05 saved")
 
@@ -143,7 +145,7 @@ sns.heatmap(corr_mat, annot=True, fmt='.2f', cmap='RdBu_r', center=0,
             ax=ax, annot_kws={'size': 7}, linewidths=0.5)
 ax.set_title('Correlaciones entre features seguras + target cancer', fontsize=12)
 plt.tight_layout()
-plt.savefig(str(FIG / 'fig06_corr_heatmap.png'), bbox_inches='tight')
+plt.savefig(str(FIG / '06_corr_heatmap.png'), bbox_inches='tight')
 plt.close()
 print("fig06 saved")
 
@@ -160,7 +162,7 @@ for bar, val in zip(bars, leakage_corr):
     ax.text(val + 0.008 * np.sign(val), bar.get_y() + bar.get_height() / 2,
             f'{val:.3f}', va='center', fontsize=9)
 plt.tight_layout()
-plt.savefig(str(FIG / 'fig07_leakage_warning.png'), bbox_inches='tight')
+plt.savefig(str(FIG / '07_leakage_warning.png'), bbox_inches='tight')
 plt.close()
 print("fig07 saved")
 
@@ -174,7 +176,7 @@ for ax, col in zip(axes, ['edad', 'num_hijos', 'distancia_hospital_km']):
     ax.legend(fontsize=7)
 plt.suptitle('Variables sociodemograficas numericas por cancer', fontsize=11)
 plt.tight_layout()
-plt.savefig(str(FIG / 'fig08_sociodem_num.png'), bbox_inches='tight')
+plt.savefig(str(FIG / '08_sociodem_num.png'), bbox_inches='tight')
 plt.close()
 print("fig08 saved")
 
@@ -194,7 +196,7 @@ for i, c in enumerate(eco_num):
     axes[1, i].set_title(f'{c} boxplot', fontsize=8, color='red')
 plt.suptitle('Variables economicas - ADVERTENCIA: leakage post-diagnostico', color='red', fontsize=11)
 plt.tight_layout()
-plt.savefig(str(FIG / 'fig09_economicos_leakage.png'), bbox_inches='tight')
+plt.savefig(str(FIG / '09_economicos_leakage.png'), bbox_inches='tight')
 plt.close()
 print("fig09 saved")
 
@@ -212,7 +214,7 @@ ax.axvline(0, color='black', linewidth=0.8)
 ax.set_xlabel('Pearson r con cancer')
 ax.set_title('Senial lineal con cancer (sin variables leakage)')
 plt.tight_layout()
-plt.savefig(str(FIG / 'fig10_feature_signal.png'), bbox_inches='tight')
+plt.savefig(str(FIG / '10_feature_signal.png'), bbox_inches='tight')
 plt.close()
 print("fig10 saved")
 
@@ -237,9 +239,7 @@ report = {
             "cobertura_pct": 100.0
         }
         for name, df in {
-            n: pd.read_csv(
-                f'/Users/barrechee/School/Universidad/3/UAX/2/Inteligencia-Artificial/Casos/Prediccion-Cancer/data/raw/{n}.csv'
-            )
+            n: pd.read_csv(RAW_DIR / f'{n}.csv')
             for n in ['bioquimicos', 'clinicos', 'geneticos', 'economicos', 'generales', 'sociodemografico']
         }.items()
     },
@@ -262,7 +262,7 @@ report = {
     "features_excluir": ["alcohol", "vive", "coste_total", "coste_farmaco", "num_ingresos", "dias_hospital"]
 }
 
-outpath = BASE / 'reports' / 'eda_report.json'
+outpath = EDA_DIR / 'report.json'
 with open(str(outpath), 'w', encoding='utf-8') as f:
     json.dump(report, f, indent=2, ensure_ascii=False)
 print(f"\nJSON report saved: {outpath}")
