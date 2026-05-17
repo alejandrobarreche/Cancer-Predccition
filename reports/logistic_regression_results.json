@@ -1,0 +1,123 @@
+{
+  "model_name": "Logistic Regression",
+  "best_hyperparameters": {
+    "C": 1,
+    "penalty": "l1"
+  },
+  "cv_best_f1": 0.54822,
+  "cv_folds": 5,
+  "cv_scoring": "f1",
+  "training_time_seconds": 2.6,
+  "threshold": 0.5,
+  "threshold_selection": "default",
+  "val_metrics": {
+    "f1": 0.545325,
+    "auc_roc": 0.837312,
+    "precision": 0.430176,
+    "recall": 0.744653,
+    "accuracy": 0.7605,
+    "average_precision": 0.602818,
+    "confusion_matrix": {
+      "tn": 4935,
+      "fp": 1522,
+      "fn": 394,
+      "tp": 1149
+    }
+  },
+  "test_metrics": {
+    "f1": 0.552806,
+    "auc_roc": 0.841419,
+    "precision": 0.434899,
+    "recall": 0.758424,
+    "accuracy": 0.763324,
+    "average_precision": 0.609606,
+    "confusion_matrix": {
+      "tn": 6171,
+      "fp": 1901,
+      "fn": 466,
+      "tp": 1463
+    }
+  },
+  "feature_importances_top20": [
+    {
+      "feature": "mut_BRCA1",
+      "importance": 1.806472
+    },
+    {
+      "feature": "mut_TP53",
+      "importance": 1.598696
+    },
+    {
+      "feature": "fumador",
+      "importance": 1.311916
+    },
+    {
+      "feature": "mut_KRAS",
+      "importance": 1.250871
+    },
+    {
+      "feature": "actividad_fisica_Baja",
+      "importance": 1.038634
+    },
+    {
+      "feature": "obesidad",
+      "importance": 0.980341
+    },
+    {
+      "feature": "mut_EGFR",
+      "importance": 0.962921
+    },
+    {
+      "feature": "mut_PIK3CA",
+      "importance": 0.702121
+    },
+    {
+      "feature": "tipo_seguro_Privado",
+      "importance": 0.646919
+    },
+    {
+      "feature": "mut_BRAF",
+      "importance": 0.640335
+    },
+    {
+      "feature": "actividad_fisica_Moderada",
+      "importance": 0.459021
+    },
+    {
+      "feature": "hipertension",
+      "importance": 0.441126
+    },
+    {
+      "feature": "tipo_seguro_Publico",
+      "importance": 0.399832
+    },
+    {
+      "feature": "glucosa",
+      "importance": 0.210284
+    },
+    {
+      "feature": "edad",
+      "importance": 0.16176
+    },
+    {
+      "feature": "leucocitos",
+      "importance": 0.092196
+    },
+    {
+      "feature": "estado_civil_Divorciado",
+      "importance": 0.07256
+    },
+    {
+      "feature": "nivel_educativo_Sin estudios",
+      "importance": 0.058223
+    },
+    {
+      "feature": "hemoglobina",
+      "importance": 0.054517
+    },
+    {
+      "feature": "nivel_ingresos_Muy bajo",
+      "importance": 0.051047
+    }
+  ]
+}

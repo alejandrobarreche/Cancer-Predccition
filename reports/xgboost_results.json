@@ -1,0 +1,124 @@
+{
+  "model_name": "XGBoost",
+  "best_hyperparameters": {
+    "learning_rate": 0.05,
+    "max_depth": 4,
+    "n_estimators": 300
+  },
+  "cv_best_f1": 0.551158,
+  "cv_folds": 5,
+  "cv_scoring": "f1",
+  "training_time_seconds": 7.69,
+  "threshold": 0.5,
+  "threshold_selection": "default",
+  "val_metrics": {
+    "f1": 0.58463,
+    "auc_roc": 0.865709,
+    "precision": 0.467886,
+    "recall": 0.779002,
+    "accuracy": 0.7865,
+    "average_precision": 0.667442,
+    "confusion_matrix": {
+      "tn": 5090,
+      "fp": 1367,
+      "fn": 341,
+      "tp": 1202
+    }
+  },
+  "test_metrics": {
+    "f1": 0.556996,
+    "auc_roc": 0.844706,
+    "precision": 0.44441,
+    "recall": 0.745982,
+    "accuracy": 0.771123,
+    "average_precision": 0.611871,
+    "confusion_matrix": {
+      "tn": 6273,
+      "fp": 1799,
+      "fn": 490,
+      "tp": 1439
+    }
+  },
+  "feature_importances_top20": [
+    {
+      "feature": "fumador",
+      "importance": 0.142893
+    },
+    {
+      "feature": "obesidad",
+      "importance": 0.115043
+    },
+    {
+      "feature": "mut_BRCA1",
+      "importance": 0.107633
+    },
+    {
+      "feature": "mut_TP53",
+      "importance": 0.078418
+    },
+    {
+      "feature": "mut_KRAS",
+      "importance": 0.072481
+    },
+    {
+      "feature": "tipo_seguro_Privado",
+      "importance": 0.067296
+    },
+    {
+      "feature": "tipo_seguro_Publico",
+      "importance": 0.047054
+    },
+    {
+      "feature": "mut_EGFR",
+      "importance": 0.040362
+    },
+    {
+      "feature": "actividad_fisica_Baja",
+      "importance": 0.039582
+    },
+    {
+      "feature": "hipertension",
+      "importance": 0.033823
+    },
+    {
+      "feature": "mut_PIK3CA",
+      "importance": 0.02295
+    },
+    {
+      "feature": "glucosa",
+      "importance": 0.021975
+    },
+    {
+      "feature": "mut_BRAF",
+      "importance": 0.02129
+    },
+    {
+      "feature": "actividad_fisica_Moderada",
+      "importance": 0.020974
+    },
+    {
+      "feature": "leucocitos",
+      "importance": 0.011081
+    },
+    {
+      "feature": "edad",
+      "importance": 0.01092
+    },
+    {
+      "feature": "hemoglobina",
+      "importance": 0.009281
+    },
+    {
+      "feature": "nivel_educativo_Sin estudios",
+      "importance": 0.007807
+    },
+    {
+      "feature": "estado_civil_Viudo",
+      "importance": 0.007367
+    },
+    {
+      "feature": "trigliceridos",
+      "importance": 0.007277
+    }
+  ]
+}
