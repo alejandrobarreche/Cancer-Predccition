@@ -110,9 +110,28 @@ HIDDEN_UNITS = (300, 100, 30)
 DROPOUT_RATES = (0.25, 0.25, 0.20)
 LEARNING_RATE = 1e-3
 
-# Baseline de referencia (XGBoost @ threshold=0.5)
-XGBOOST_TEST_F1 = 0.556996
-XGBOOST_TEST_AUC = 0.844706
+
+# ─── Carga del baseline XGBoost ───────────────────────────────────────────────
+
+def load_xgboost_baseline() -> dict[str, float]:
+    """Lee las métricas de XGBoost en test desde reports/classical/xgboost.json.
+
+    La MLP las usa como punto de comparación. Requiere que `train_classical.py`
+    se haya ejecutado antes; si el JSON no existe, falla con un mensaje
+    accionable en vez de propagar un error opaco más adelante.
+    """
+    xgb_path = REPORTS_DIR / "classical" / "xgboost.json"
+    if not xgb_path.exists():
+        raise FileNotFoundError(
+            f"No existe {xgb_path}. "
+            "Ejecuta `python -m src.models.train_classical` antes de la MLP."
+        )
+    data = json.loads(xgb_path.read_text())
+    return {
+        "f1": data["test_metrics"]["f1"],
+        "auc_roc": data["test_metrics"]["auc_roc"],
+        "threshold": data["threshold"],
+    }
 
 
 # ─── Threshold tuning (skill: threshold-tuning) ───────────────────────────────
@@ -374,6 +393,13 @@ def main() -> None:
     LOGGER.info("Inicio entrenamiento MLP — Predicción de cáncer")
     LOGGER.info("=" * 60)
 
+    # 0. Baseline XGBoost — fallar pronto si no se ha entrenado todavía
+    xgb_baseline = load_xgboost_baseline()
+    LOGGER.info(
+        "Baseline XGBoost (test): F1=%.4f, AUC=%.4f, threshold=%.2f",
+        xgb_baseline["f1"], xgb_baseline["auc_roc"], xgb_baseline["threshold"],
+    )
+
     # 1. Carga de datos
     LOGGER.info("Cargando datos...")
     train_df = pd.read_csv(DATA_DIR / "train.csv")
@@ -580,8 +606,8 @@ def main() -> None:
     plot_models_comparison(
         mlp_f1=test_metrics_optimal["f1"],
         mlp_auc=test_metrics_optimal["auc_roc"],
-        xgb_f1=XGBOOST_TEST_F1,
-        xgb_auc=XGBOOST_TEST_AUC,
+        xgb_f1=xgb_baseline["f1"],
+        xgb_auc=xgb_baseline["auc_roc"],
         figures_dir=COMPARISON_FIGURES_DIR,
     )
 
@@ -636,11 +662,7 @@ def main() -> None:
         "val_metrics_optimal": val_metrics_optimal,
         "test_metrics_default": test_metrics_default,
         "test_metrics_optimal": test_metrics_optimal,
-        "baseline_xgboost_test": {
-            "f1": XGBOOST_TEST_F1,
-            "auc_roc": XGBOOST_TEST_AUC,
-            "threshold": 0.5,
-        },
+        "baseline_xgboost_test": xgb_baseline,
         "training_history": history_serializable,
     }
 
@@ -664,9 +686,12 @@ def main() -> None:
     LOGGER.info("Parámetros del modelo: %d", n_params)
     LOGGER.info("Épocas hasta convergencia: %d (early stopping)", n_epochs)
     LOGGER.info("")
-    LOGGER.info("XGBoost test F1 (t=0.5): %.4f → MLP test F1 (t=%.2f): %.4f", XGBOOST_TEST_F1, t_star, test_metrics_optimal["f1"])
-    delta_f1 = test_metrics_optimal["f1"] - XGBOOST_TEST_F1
-    delta_auc = test_metrics_optimal["auc_roc"] - XGBOOST_TEST_AUC
+    LOGGER.info(
+        "XGBoost test F1 (t=%.2f): %.4f → MLP test F1 (t=%.2f): %.4f",
+        xgb_baseline["threshold"], xgb_baseline["f1"], t_star, test_metrics_optimal["f1"],
+    )
+    delta_f1 = test_metrics_optimal["f1"] - xgb_baseline["f1"]
+    delta_auc = test_metrics_optimal["auc_roc"] - xgb_baseline["auc_roc"]
     LOGGER.info("Delta F1: %+.4f | Delta AUC: %+.4f", delta_f1, delta_auc)
 
     print("\n" + "=" * 60)
@@ -683,8 +708,8 @@ def main() -> None:
     print(f"Épocas hasta convergencia: {n_epochs} (early stopping)")
     print(f"Tiempo de entrenamiento: {training_time:.1f} s")
     print(f"\nComparación vs XGBoost (test):")
-    print(f"  F1:     XGB={XGBOOST_TEST_F1:.4f}  MLP={test_metrics_optimal['f1']:.4f}  ({delta_f1:+.4f})")
-    print(f"  AUC:    XGB={XGBOOST_TEST_AUC:.4f}  MLP={test_metrics_optimal['auc_roc']:.4f}  ({delta_auc:+.4f})")
+    print(f"  F1:     XGB={xgb_baseline['f1']:.4f}  MLP={test_metrics_optimal['f1']:.4f}  ({delta_f1:+.4f})")
+    print(f"  AUC:    XGB={xgb_baseline['auc_roc']:.4f}  MLP={test_metrics_optimal['auc_roc']:.4f}  ({delta_auc:+.4f})")
     print(f"\nArtefactos:")
     print(f"  reports/mlp/results.json")
     print(f"  reports/mlp/train.log")
