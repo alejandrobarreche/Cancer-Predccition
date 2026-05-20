@@ -35,8 +35,13 @@ azure-identity>=1.16
 # pyodbc>=5.1     # Activar si se implementa ETL programático en src/
 # sqlalchemy>=2.0
 
-# Aplicación y entregable
-streamlit>=1.30
+# Web app (dashboard FastAPI + Jinja2; Plotly.js se carga en el cliente)
+fastapi>=0.111
+uvicorn[standard]>=0.30
+jinja2>=3.1
+pydantic>=2.7
+
+# Entregable
 python-pptx>=0.6.23
 
 # Notebooks y EDA

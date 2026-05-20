@@ -33,7 +33,7 @@ Los CSV crudos y los datasets derivados **no se versionan** (ver `.gitignore`). 
 - **scikit-learn + XGBoost** para los modelos clásicos.
 - **pandas / numpy / scipy** para manipulación.
 - **matplotlib / seaborn** para visualización.
-- **Streamlit** para la app interactiva.
+- **FastAPI + Jinja2 + Plotly.js** para la web app interactiva (dashboard).
 - **python-pptx** para el entregable.
 
 Dependencias completas en `requirements.txt`.
@@ -59,7 +59,9 @@ src/
     mlp.py              # Arquitectura MLP parametrizable
     train_mlp.py        # Entrenamiento, threshold tuning y evaluación de la MLP
   app/
-    streamlit_app.py    # Informe interactivo + estimador de riesgo
+    webapp.py           # Web app FastAPI: dashboard interactivo + estimador de riesgo
+    templates/          # dashboard.html (Jinja2)
+    static/             # CSS y JS del dashboard
 reports/
   eda/             # Informe (memo.md), report.json, generate_figures.py + figures/
   classical/       # results.json global, {model}.json por modelo + figures/
@@ -108,8 +110,8 @@ python -m src.models.train_classical
 # 5. Entrenamiento de la MLP
 python -m src.models.train_mlp
 
-# 6. App interactiva con los resultados
-streamlit run src/app/streamlit_app.py
+# 6. Web app interactiva con los resultados (dashboard)
+uvicorn src.app.webapp:app --reload --port 8000
 
 # 7. Generación del entregable de 5 diapositivas
 python reports/build_slides.py
@@ -165,10 +167,10 @@ El pipeline está completo y se itera sobre arquitectura, hiperparámetros y sel
 
 ### Dashboard interactivo (web app)
 
-El dashboard se visualiza levantando la **web app de Streamlit**. Desde la raíz del proyecto, con el entorno `uax-tf` activado:
+El dashboard se visualiza levantando la **web app de FastAPI**. Desde la raíz del proyecto, con el entorno `uax-tf` activado:
 
 ```bash
-streamlit run src/app/streamlit_app.py
+uvicorn src.app.webapp:app --reload --port 8000
 ```
 
-Esto abre el dashboard en el navegador (`http://localhost:8501`) con el informe interactivo y el estimador de riesgo.
+Luego abre el dashboard en el navegador en `http://localhost:8000`: incluye el informe interactivo (métricas, curvas ROC/PR y comparativa de los 5 modelos) y el estimador de riesgo en vivo.
