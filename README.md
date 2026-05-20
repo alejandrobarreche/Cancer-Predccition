@@ -163,4 +163,12 @@ El pipeline está completo y se itera sobre arquitectura, hiperparámetros y sel
 - `reports/{eda,classical,mlp,comparison}/figures/` — curvas, matrices de confusión y comparativas por fase.
 - `reports/slides/cancer_uax.pptx` — entregable final.
 
-Para ver los resultados de forma interactiva: `streamlit run src/app/streamlit_app.py`.
+### Dashboard interactivo (web app)
+
+El dashboard se visualiza levantando la **web app de Streamlit**. Desde la raíz del proyecto, con el entorno `uax-tf` activado:
+
+```bash
+streamlit run src/app/streamlit_app.py
+```
+
+Esto abre el dashboard en el navegador (`http://localhost:8501`) con el informe interactivo y el estimador de riesgo.
