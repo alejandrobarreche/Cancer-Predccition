@@ -2,123 +2,153 @@
   {
     "model_name": "Logistic Regression",
     "best_hyperparameters": {
-      "C": 1,
+      "C": 0.1,
       "penalty": "l1"
     },
-    "cv_best_f1": 0.54822,
+    "cv_best_f1": 0.555125,
     "cv_folds": 5,
     "cv_scoring": "f1",
-    "training_time_seconds": 2.6,
-    "threshold": 0.5,
-    "threshold_selection": "default",
-    "val_metrics": {
-      "f1": 0.545325,
-      "auc_roc": 0.837312,
-      "precision": 0.430176,
-      "recall": 0.744653,
-      "accuracy": 0.7605,
-      "average_precision": 0.602818,
+    "training_time_seconds": 6.41,
+    "threshold_default": 0.5,
+    "threshold_optimal_f1": 0.64,
+    "threshold_youden": 0.4925,
+    "threshold_selection": "validation_f1_max",
+    "val_metrics_default": {
+      "f1": 0.556492,
+      "auc_roc": 0.844733,
+      "precision": 0.442868,
+      "recall": 0.748542,
+      "accuracy": 0.769875,
+      "average_precision": 0.625382,
       "confusion_matrix": {
-        "tn": 4935,
-        "fp": 1522,
-        "fn": 394,
-        "tp": 1149
+        "tn": 5004,
+        "fp": 1453,
+        "fn": 388,
+        "tp": 1155
       }
     },
-    "test_metrics": {
-      "f1": 0.552806,
-      "auc_roc": 0.841419,
-      "precision": 0.434899,
-      "recall": 0.758424,
-      "accuracy": 0.763324,
-      "average_precision": 0.609606,
+    "val_metrics_optimal": {
+      "f1": 0.583232,
+      "auc_roc": 0.844733,
+      "precision": 0.548885,
+      "recall": 0.622165,
+      "accuracy": 0.8285,
+      "average_precision": 0.625382,
       "confusion_matrix": {
-        "tn": 6171,
-        "fp": 1901,
-        "fn": 466,
-        "tp": 1463
+        "tn": 5668,
+        "fp": 789,
+        "fn": 583,
+        "tp": 960
+      }
+    },
+    "test_metrics_default": {
+      "f1": 0.560897,
+      "auc_roc": 0.848654,
+      "precision": 0.442711,
+      "recall": 0.765163,
+      "accuracy": 0.768923,
+      "average_precision": 0.624709,
+      "confusion_matrix": {
+        "tn": 6214,
+        "fp": 1858,
+        "fn": 453,
+        "tp": 1476
+      }
+    },
+    "test_metrics_optimal": {
+      "f1": 0.580164,
+      "auc_roc": 0.848654,
+      "precision": 0.541573,
+      "recall": 0.624676,
+      "accuracy": 0.825617,
+      "average_precision": 0.624709,
+      "confusion_matrix": {
+        "tn": 7052,
+        "fp": 1020,
+        "fn": 724,
+        "tp": 1205
       }
     },
     "feature_importances_top20": [
       {
-        "feature": "mut_BRCA1",
-        "importance": 1.806472
-      },
-      {
-        "feature": "mut_TP53",
-        "importance": 1.598696
-      },
-      {
         "feature": "fumador",
-        "importance": 1.311916
+        "importance": 1.31214
       },
       {
-        "feature": "mut_KRAS",
-        "importance": 1.250871
-      },
-      {
-        "feature": "actividad_fisica_Baja",
-        "importance": 1.038634
+        "feature": "glucosa_alta",
+        "importance": 1.119426
       },
       {
         "feature": "obesidad",
-        "importance": 0.980341
+        "importance": 0.978766
       },
       {
-        "feature": "mut_EGFR",
-        "importance": 0.962921
+        "feature": "hemoglobina_baja",
+        "importance": 0.720634
       },
       {
-        "feature": "mut_PIK3CA",
-        "importance": 0.702121
+        "feature": "mut_ALK",
+        "importance": 0.684029
       },
       {
         "feature": "tipo_seguro_Privado",
-        "importance": 0.646919
+        "importance": 0.639674
       },
       {
-        "feature": "mut_BRAF",
-        "importance": 0.640335
+        "feature": "leucocitos_altos",
+        "importance": 0.597798
       },
       {
-        "feature": "actividad_fisica_Moderada",
-        "importance": 0.459021
+        "feature": "n_mutaciones_total",
+        "importance": 0.512789
+      },
+      {
+        "feature": "n_mutaciones_alto_riesgo",
+        "importance": 0.512678
       },
       {
         "feature": "hipertension",
-        "importance": 0.441126
+        "importance": 0.444642
+      },
+      {
+        "feature": "actividad_score",
+        "importance": 0.411499
       },
       {
         "feature": "tipo_seguro_Publico",
-        "importance": 0.399832
+        "importance": 0.396594
       },
       {
-        "feature": "glucosa",
-        "importance": 0.210284
+        "feature": "mut_KRAS",
+        "importance": 0.349703
       },
       {
-        "feature": "edad",
-        "importance": 0.16176
+        "feature": "edad_riesgo",
+        "importance": 0.299176
       },
       {
-        "feature": "leucocitos",
-        "importance": 0.092196
+        "feature": "mut_EGFR",
+        "importance": 0.284712
+      },
+      {
+        "feature": "mut_BRCA1",
+        "importance": 0.171079
       },
       {
         "feature": "estado_civil_Divorciado",
-        "importance": 0.07256
+        "importance": 0.070662
       },
       {
         "feature": "nivel_educativo_Sin estudios",
-        "importance": 0.058223
+        "importance": 0.04751
       },
       {
-        "feature": "hemoglobina",
-        "importance": 0.054517
+        "feature": "edad",
+        "importance": 0.043963
       },
       {
-        "feature": "nivel_ingresos_Muy bajo",
-        "importance": 0.051047
+        "feature": "mut_PIK3CA",
+        "importance": 0.024295
       }
     ],
     "model_key": "logistic_regression"
@@ -126,124 +156,154 @@
   {
     "model_name": "Random Forest",
     "best_hyperparameters": {
-      "max_depth": 20,
-      "min_samples_leaf": 20,
+      "max_depth": 10,
+      "min_samples_leaf": 5,
       "n_estimators": 500
     },
-    "cv_best_f1": 0.546984,
+    "cv_best_f1": 0.553064,
     "cv_folds": 5,
     "cv_scoring": "f1",
-    "training_time_seconds": 73.09,
-    "threshold": 0.5,
-    "threshold_selection": "default",
-    "val_metrics": {
-      "f1": 0.642983,
-      "auc_roc": 0.909615,
-      "precision": 0.525969,
-      "recall": 0.82696,
-      "accuracy": 0.822875,
-      "average_precision": 0.731054,
+    "training_time_seconds": 72.51,
+    "threshold_default": 0.5,
+    "threshold_optimal_f1": 0.6,
+    "threshold_youden": 0.4555,
+    "threshold_selection": "validation_f1_max",
+    "val_metrics_default": {
+      "f1": 0.607686,
+      "auc_roc": 0.88303,
+      "precision": 0.504713,
+      "recall": 0.763448,
+      "accuracy": 0.809875,
+      "average_precision": 0.72091,
       "confusion_matrix": {
-        "tn": 5307,
-        "fp": 1150,
-        "fn": 267,
-        "tp": 1276
+        "tn": 5301,
+        "fp": 1156,
+        "fn": 365,
+        "tp": 1178
       }
     },
-    "test_metrics": {
-      "f1": 0.553546,
-      "auc_roc": 0.837511,
-      "precision": 0.455214,
-      "recall": 0.706065,
-      "accuracy": 0.780322,
-      "average_precision": 0.59455,
+    "val_metrics_optimal": {
+      "f1": 0.635894,
+      "auc_roc": 0.88303,
+      "precision": 0.633441,
+      "recall": 0.638367,
+      "accuracy": 0.859,
+      "average_precision": 0.72091,
       "confusion_matrix": {
-        "tn": 6442,
-        "fp": 1630,
-        "fn": 567,
-        "tp": 1362
+        "tn": 5887,
+        "fp": 570,
+        "fn": 558,
+        "tp": 985
+      }
+    },
+    "test_metrics_default": {
+      "f1": 0.562665,
+      "auc_roc": 0.838572,
+      "precision": 0.462592,
+      "recall": 0.717989,
+      "accuracy": 0.784722,
+      "average_precision": 0.598962,
+      "confusion_matrix": {
+        "tn": 6463,
+        "fp": 1609,
+        "fn": 544,
+        "tp": 1385
+      }
+    },
+    "test_metrics_optimal": {
+      "f1": 0.572165,
+      "auc_roc": 0.838572,
+      "precision": 0.568939,
+      "recall": 0.575428,
+      "accuracy": 0.834017,
+      "average_precision": 0.598962,
+      "confusion_matrix": {
+        "tn": 7231,
+        "fp": 841,
+        "fn": 819,
+        "tp": 1110
       }
     },
     "feature_importances_top20": [
       {
+        "feature": "n_mutaciones_alto_riesgo",
+        "importance": 0.14837
+      },
+      {
         "feature": "fumador",
-        "importance": 0.132368
+        "importance": 0.132593
+      },
+      {
+        "feature": "n_mutaciones_total",
+        "importance": 0.12671
       },
       {
         "feature": "obesidad",
-        "importance": 0.08749
-      },
-      {
-        "feature": "mut_BRCA1",
-        "importance": 0.087157
-      },
-      {
-        "feature": "mut_TP53",
-        "importance": 0.080778
+        "importance": 0.077785
       },
       {
         "feature": "glucosa",
-        "importance": 0.072536
-      },
-      {
-        "feature": "mut_KRAS",
-        "importance": 0.053728
+        "importance": 0.052594
       },
       {
         "feature": "tipo_seguro_Privado",
-        "importance": 0.051747
+        "importance": 0.043125
       },
       {
-        "feature": "leucocitos",
-        "importance": 0.043969
-      },
-      {
-        "feature": "trigliceridos",
-        "importance": 0.037852
-      },
-      {
-        "feature": "hemoglobina",
-        "importance": 0.036832
+        "feature": "mut_BRCA1",
+        "importance": 0.038709
       },
       {
         "feature": "tipo_seguro_Publico",
-        "importance": 0.03453
+        "importance": 0.034134
+      },
+      {
+        "feature": "actividad_score",
+        "importance": 0.030556
+      },
+      {
+        "feature": "glucosa_alta",
+        "importance": 0.027043
+      },
+      {
+        "feature": "mut_TP53",
+        "importance": 0.026711
+      },
+      {
+        "feature": "leucocitos",
+        "importance": 0.02534
+      },
+      {
+        "feature": "trigliceridos",
+        "importance": 0.024563
       },
       {
         "feature": "colesterol",
-        "importance": 0.034006
+        "importance": 0.02352
+      },
+      {
+        "feature": "hemoglobina",
+        "importance": 0.021575
       },
       {
         "feature": "edad",
-        "importance": 0.031687
+        "importance": 0.020124
+      },
+      {
+        "feature": "mut_KRAS",
+        "importance": 0.018665
       },
       {
         "feature": "plaquetas",
-        "importance": 0.029787
-      },
-      {
-        "feature": "actividad_fisica_Baja",
-        "importance": 0.029191
+        "importance": 0.017659
       },
       {
         "feature": "distancia_hospital_km",
-        "importance": 0.028291
+        "importance": 0.016894
       },
       {
         "feature": "creatinina",
-        "importance": 0.026403
-      },
-      {
-        "feature": "hipertension",
-        "importance": 0.01883
-      },
-      {
-        "feature": "mut_EGFR",
-        "importance": 0.017363
-      },
-      {
-        "feature": "num_hijos",
-        "importance": 0.009112
+        "importance": 0.016214
       }
     ],
     "model_key": "random_forest"
@@ -255,120 +315,150 @@
       "max_depth": 4,
       "n_estimators": 300
     },
-    "cv_best_f1": 0.551158,
+    "cv_best_f1": 0.551035,
     "cv_folds": 5,
     "cv_scoring": "f1",
     "training_time_seconds": 7.69,
-    "threshold": 0.5,
-    "threshold_selection": "default",
-    "val_metrics": {
-      "f1": 0.58463,
-      "auc_roc": 0.865709,
-      "precision": 0.467886,
-      "recall": 0.779002,
-      "accuracy": 0.7865,
-      "average_precision": 0.667442,
+    "threshold_default": 0.5,
+    "threshold_optimal_f1": 0.63,
+    "threshold_youden": 0.5253,
+    "threshold_selection": "validation_f1_max",
+    "val_metrics_default": {
+      "f1": 0.578401,
+      "auc_roc": 0.865954,
+      "precision": 0.461094,
+      "recall": 0.775762,
+      "accuracy": 0.781875,
+      "average_precision": 0.663853,
       "confusion_matrix": {
-        "tn": 5090,
-        "fp": 1367,
-        "fn": 341,
-        "tp": 1202
+        "tn": 5058,
+        "fp": 1399,
+        "fn": 346,
+        "tp": 1197
       }
     },
-    "test_metrics": {
-      "f1": 0.556996,
-      "auc_roc": 0.844706,
-      "precision": 0.44441,
-      "recall": 0.745982,
-      "accuracy": 0.771123,
-      "average_precision": 0.611871,
+    "val_metrics_optimal": {
+      "f1": 0.615292,
+      "auc_roc": 0.865954,
+      "precision": 0.572545,
+      "recall": 0.664938,
+      "accuracy": 0.839625,
+      "average_precision": 0.663853,
       "confusion_matrix": {
-        "tn": 6273,
-        "fp": 1799,
-        "fn": 490,
-        "tp": 1439
+        "tn": 5691,
+        "fp": 766,
+        "fn": 517,
+        "tp": 1026
+      }
+    },
+    "test_metrics_default": {
+      "f1": 0.556281,
+      "auc_roc": 0.845804,
+      "precision": 0.441868,
+      "recall": 0.750648,
+      "accuracy": 0.769023,
+      "average_precision": 0.616156,
+      "confusion_matrix": {
+        "tn": 6243,
+        "fp": 1829,
+        "fn": 481,
+        "tp": 1448
+      }
+    },
+    "test_metrics_optimal": {
+      "f1": 0.582677,
+      "auc_roc": 0.845804,
+      "precision": 0.539788,
+      "recall": 0.63297,
+      "accuracy": 0.825117,
+      "average_precision": 0.616156,
+      "confusion_matrix": {
+        "tn": 7031,
+        "fp": 1041,
+        "fn": 708,
+        "tp": 1221
       }
     },
     "feature_importances_top20": [
       {
+        "feature": "n_mutaciones_alto_riesgo",
+        "importance": 0.256959
+      },
+      {
         "feature": "fumador",
-        "importance": 0.142893
+        "importance": 0.110283
       },
       {
         "feature": "obesidad",
-        "importance": 0.115043
+        "importance": 0.074935
       },
       {
-        "feature": "mut_BRCA1",
-        "importance": 0.107633
+        "feature": "n_mutaciones_total",
+        "importance": 0.069996
       },
       {
-        "feature": "mut_TP53",
-        "importance": 0.078418
-      },
-      {
-        "feature": "mut_KRAS",
-        "importance": 0.072481
+        "feature": "glucosa_alta",
+        "importance": 0.052851
       },
       {
         "feature": "tipo_seguro_Privado",
-        "importance": 0.067296
+        "importance": 0.045525
       },
       {
         "feature": "tipo_seguro_Publico",
-        "importance": 0.047054
+        "importance": 0.038401
       },
       {
-        "feature": "mut_EGFR",
-        "importance": 0.040362
+        "feature": "actividad_score",
+        "importance": 0.029721
       },
       {
-        "feature": "actividad_fisica_Baja",
-        "importance": 0.039582
+        "feature": "leucocitos_altos",
+        "importance": 0.028357
+      },
+      {
+        "feature": "mut_BRCA1",
+        "importance": 0.027131
       },
       {
         "feature": "hipertension",
-        "importance": 0.033823
+        "importance": 0.026988
       },
       {
-        "feature": "mut_PIK3CA",
-        "importance": 0.02295
+        "feature": "edad_riesgo",
+        "importance": 0.021438
+      },
+      {
+        "feature": "hemoglobina_baja",
+        "importance": 0.014047
+      },
+      {
+        "feature": "mut_TP53",
+        "importance": 0.013756
+      },
+      {
+        "feature": "mut_EGFR",
+        "importance": 0.01336
       },
       {
         "feature": "glucosa",
-        "importance": 0.021975
+        "importance": 0.012386
       },
       {
-        "feature": "mut_BRAF",
-        "importance": 0.02129
+        "feature": "mut_ALK",
+        "importance": 0.011202
       },
       {
-        "feature": "actividad_fisica_Moderada",
-        "importance": 0.020974
+        "feature": "diabetes",
+        "importance": 0.009586
       },
       {
         "feature": "leucocitos",
-        "importance": 0.011081
+        "importance": 0.008724
       },
       {
         "feature": "edad",
-        "importance": 0.01092
-      },
-      {
-        "feature": "hemoglobina",
-        "importance": 0.009281
-      },
-      {
-        "feature": "nivel_educativo_Sin estudios",
-        "importance": 0.007807
-      },
-      {
-        "feature": "estado_civil_Viudo",
-        "importance": 0.007367
-      },
-      {
-        "feature": "trigliceridos",
-        "importance": 0.007277
+        "importance": 0.008587
       }
     ],
     "model_key": "xgboost"
@@ -377,127 +467,75 @@
     "model_name": "HistGradientBoosting",
     "best_hyperparameters": {
       "learning_rate": 0.05,
-      "max_depth": 4,
-      "max_iter": 200,
+      "max_depth": null,
+      "max_iter": 400,
       "min_samples_leaf": 50
     },
-    "cv_best_f1": 0.550708,
+    "cv_best_f1": 0.552116,
     "cv_folds": 5,
     "cv_scoring": "f1",
-    "training_time_seconds": 22.47,
-    "threshold": 0.5,
-    "threshold_selection": "default",
-    "val_metrics": {
-      "f1": 0.571017,
-      "auc_roc": 0.856028,
-      "precision": 0.453782,
-      "recall": 0.769929,
-      "accuracy": 0.776875,
-      "average_precision": 0.647126,
+    "training_time_seconds": 27.94,
+    "threshold_default": 0.5,
+    "threshold_optimal_f1": 0.64,
+    "threshold_youden": 0.5024,
+    "threshold_selection": "validation_f1_max",
+    "val_metrics_default": {
+      "f1": 0.660268,
+      "auc_roc": 0.917817,
+      "precision": 0.540977,
+      "recall": 0.847051,
+      "accuracy": 0.831875,
+      "average_precision": 0.764649,
       "confusion_matrix": {
-        "tn": 5027,
-        "fp": 1430,
-        "fn": 355,
-        "tp": 1188
+        "tn": 5348,
+        "fp": 1109,
+        "fn": 236,
+        "tp": 1307
       }
     },
-    "test_metrics": {
-      "f1": 0.556431,
-      "auc_roc": 0.844353,
-      "precision": 0.442237,
-      "recall": 0.75013,
-      "accuracy": 0.769323,
-      "average_precision": 0.612744,
+    "val_metrics_optimal": {
+      "f1": 0.689915,
+      "auc_roc": 0.917817,
+      "precision": 0.669512,
+      "recall": 0.711601,
+      "accuracy": 0.876625,
+      "average_precision": 0.764649,
       "confusion_matrix": {
-        "tn": 6247,
-        "fp": 1825,
-        "fn": 482,
-        "tp": 1447
+        "tn": 5915,
+        "fp": 542,
+        "fn": 445,
+        "tp": 1098
       }
     },
-    "feature_importances_top20": [
-      {
-        "feature": "fumador",
-        "importance": 0.058285
-      },
-      {
-        "feature": "mut_TP53",
-        "importance": 0.047579
-      },
-      {
-        "feature": "mut_BRCA1",
-        "importance": 0.037404
-      },
-      {
-        "feature": "mut_KRAS",
-        "importance": 0.029736
-      },
-      {
-        "feature": "obesidad",
-        "importance": 0.028367
-      },
-      {
-        "feature": "tipo_seguro",
-        "importance": 0.025118
-      },
-      {
-        "feature": "actividad_fisica",
-        "importance": 0.016533
-      },
-      {
-        "feature": "glucosa",
-        "importance": 0.011713
-      },
-      {
-        "feature": "mut_EGFR",
-        "importance": 0.008345
-      },
-      {
-        "feature": "hipertension",
-        "importance": 0.006302
-      },
-      {
-        "feature": "mut_PIK3CA",
-        "importance": 0.004975
-      },
-      {
-        "feature": "hemoglobina",
-        "importance": 0.002947
-      },
-      {
-        "feature": "edad",
-        "importance": 0.001423
-      },
-      {
-        "feature": "mut_BRAF",
-        "importance": 0.001042
-      },
-      {
-        "feature": "estado_civil",
-        "importance": 0.000304
-      },
-      {
-        "feature": "distancia_hospital_km",
-        "importance": 0.000291
-      },
-      {
-        "feature": "nivel_ingresos",
-        "importance": 0.000218
-      },
-      {
-        "feature": "nivel_educativo",
-        "importance": 0.000188
-      },
-      {
-        "feature": "epoc",
-        "importance": 0.000175
-      },
-      {
-        "feature": "asma",
-        "importance": 9e-05
+    "test_metrics_default": {
+      "f1": 0.564461,
+      "auc_roc": 0.840376,
+      "precision": 0.459336,
+      "recall": 0.731985,
+      "accuracy": 0.782122,
+      "average_precision": 0.602516,
+      "confusion_matrix": {
+        "tn": 6410,
+        "fp": 1662,
+        "fn": 517,
+        "tp": 1412
       }
-    ],
-    "model_key": "histgradientboosting",
-    "feature_importances_method": "permutation_importance_test_f1"
+    },
+    "test_metrics_optimal": {
+      "f1": 0.569556,
+      "auc_roc": 0.840376,
+      "precision": 0.554193,
+      "recall": 0.585796,
+      "accuracy": 0.829217,
+      "average_precision": 0.602516,
+      "confusion_matrix": {
+        "tn": 7163,
+        "fp": 909,
+        "fn": 799,
+        "tp": 1130
+      }
+    },
+    "feature_importances_top20": [],
+    "model_key": "histgradientboosting"
   }
 ]

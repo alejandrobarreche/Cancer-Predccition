@@ -10,10 +10,13 @@ Protocolo:
 - Preprocesador ajustado SOLO sobre X_train.
 - GridSearchCV con StratifiedKFold(n_splits=5), scoring='f1'.
 - Reentrenamiento sobre X_train+X_val con los mejores hiperparámetros.
-- Evaluación sobre test UNA SOLA VEZ por modelo.
+- Threshold tuning (skill: threshold-tuning) SOLO sobre validación.
+- Evaluación sobre test UNA SOLA VEZ por modelo, con métricas reportadas
+  tanto al threshold default (0.5) como al óptimo tuneado en validación.
 - Resultados globales en reports/classical/results.json y por-modelo en
   reports/classical/{model}.json.
-- Figuras en reports/classical/figures/.
+- Figuras en reports/classical/figures/ (cm_default, cm_optimal, roc por
+  modelo + comparison_roc / pr / metrics).
 - Modelos serializados en models/.
 """
 
@@ -62,6 +65,7 @@ from src.models.pipelines import (
     get_feature_names_out,
     load_feature_groups,
 )
+from src.models.threshold import tune_threshold
 
 # ---------------------------------------------------------------------------
 # Configuración
@@ -267,21 +271,25 @@ def plot_metrics_barplot(
     results: list[dict],
     output_path: Path,
 ) -> None:
-    """Barplot comparativo de F1 y AUC-ROC."""
+    """Barplot comparativo de F1 (al umbral óptimo) y AUC-ROC.
+
+    AUC es invariante al umbral; F1 se reporta al umbral tuneado en validación
+    porque es el criterio de decisión operativo del modelo.
+    """
     model_names = [r["model_name"] for r in results]
-    f1_scores = [r["test_metrics"]["f1"] for r in results]
-    auc_scores = [r["test_metrics"]["auc_roc"] for r in results]
+    f1_scores = [r["test_metrics_optimal"]["f1"] for r in results]
+    auc_scores = [r["test_metrics_optimal"]["auc_roc"] for r in results]
 
     x = np.arange(len(model_names))
     width = 0.35
 
     fig, ax = plt.subplots(figsize=(10, 6))
-    bars1 = ax.bar(x - width / 2, f1_scores, width, label="F1 (clase positiva)", color="steelblue", alpha=0.85)
+    bars1 = ax.bar(x - width / 2, f1_scores, width, label="F1 (clase positiva, t óptimo)", color="steelblue", alpha=0.85)
     bars2 = ax.bar(x + width / 2, auc_scores, width, label="AUC-ROC", color="tomato", alpha=0.85)
 
     ax.set_xlabel("Modelo", fontsize=12)
     ax.set_ylabel("Métrica", fontsize=12)
-    ax.set_title("Comparación F1 y AUC-ROC — Modelos Clásicos", fontsize=13, pad=12)
+    ax.set_title("Comparación F1 (t óptimo) y AUC-ROC — Modelos Clásicos", fontsize=13, pad=12)
     ax.set_xticks(x)
     ax.set_xticklabels(model_names, rotation=15, ha="right")
     ax.legend()
@@ -386,22 +394,38 @@ def train_model(
 
     total_time = cv_time + retrain_time
 
-    # Métricas en validación (para detectar overfitting)
+    # Predicciones sobre validación (probas + threshold default y óptimo)
     y_val_prob = final_pipeline.predict_proba(X_val)[:, 1]
-    y_val_pred = final_pipeline.predict(X_val)
-    val_metrics = compute_metrics(
-        np.array(y_val), np.array(y_val_pred), y_val_prob, split_name="validation"
+    y_val_pred_default = (y_val_prob >= 0.5).astype(int)
+    val_metrics_default = compute_metrics(
+        np.array(y_val), y_val_pred_default, y_val_prob, split_name="validation@0.5"
     )
 
-    # Métricas en test — UNA SOLA VEZ
-    LOGGER.info("Evaluando en TEST (una sola vez)...")
+    # Threshold tuning SOLO sobre validación (skill: threshold-tuning)
+    LOGGER.info("Ajustando umbral sobre validación (F1-max)...")
+    sweep = tune_threshold(np.array(y_val), y_val_prob)
+    t_star = sweep["threshold_f1"]
+    t_youden = sweep["threshold_youden"]
+
+    y_val_pred_optimal = (y_val_prob >= t_star).astype(int)
+    val_metrics_optimal = compute_metrics(
+        np.array(y_val), y_val_pred_optimal, y_val_prob,
+        split_name=f"validation@{t_star:.2f}",
+    )
+
+    # Métricas en test — predict UNA SOLA VEZ, aplicar dos umbrales
+    LOGGER.info("Evaluando en TEST (una sola vez, umbrales default y óptimo)...")
     y_test_prob = final_pipeline.predict_proba(X_test)[:, 1]
-    y_test_pred = final_pipeline.predict(X_test)
-    test_metrics = compute_metrics(
-        np.array(y_test), np.array(y_test_pred), y_test_prob, split_name="test"
+    y_test_pred_default = (y_test_prob >= 0.5).astype(int)
+    y_test_pred_optimal = (y_test_prob >= t_star).astype(int)
+    test_metrics_default = compute_metrics(
+        np.array(y_test), y_test_pred_default, y_test_prob, split_name="test@0.5",
+    )
+    test_metrics_optimal = compute_metrics(
+        np.array(y_test), y_test_pred_optimal, y_test_prob,
+        split_name=f"test@{t_star:.2f}",
     )
 
-    # Estructura JSON según ml-evaluation-protocol
     result = {
         "model_name": model_name,
         "best_hyperparameters": {
@@ -411,13 +435,18 @@ def train_model(
         "cv_folds": CV_FOLDS,
         "cv_scoring": SCORING,
         "training_time_seconds": round(total_time, 2),
-        "threshold": 0.5,
-        "threshold_selection": "default",
-        "val_metrics": val_metrics,
-        "test_metrics": test_metrics,
+        "threshold_default": 0.5,
+        "threshold_optimal_f1": t_star,
+        "threshold_youden": round(t_youden, 4),
+        "threshold_selection": "validation_f1_max",
+        "val_metrics_default": val_metrics_default,
+        "val_metrics_optimal": val_metrics_optimal,
+        "test_metrics_default": test_metrics_default,
+        "test_metrics_optimal": test_metrics_optimal,
         # Para plots
         "_y_test": y_test,
-        "_y_test_pred": y_test_pred,
+        "_y_test_pred_default": y_test_pred_default,
+        "_y_test_pred_optimal": y_test_pred_optimal,
         "_y_test_prob": y_test_prob,
         "_pipeline": final_pipeline,
     }
@@ -630,12 +659,20 @@ def main() -> None:
 
         # Generar figuras individuales
         safe_name = model_name.lower().replace(" ", "_")
+        t_star = result["threshold_optimal_f1"]
 
         plot_confusion_matrix(
             y_true=np.array(result["_y_test"]),
-            y_pred=result["_y_test_pred"],
-            model_name=model_name,
-            output_path=FIGURES_DIR / f"{safe_name}_cm.png",
+            y_pred=result["_y_test_pred_default"],
+            model_name=f"{model_name} (t=0.50)",
+            output_path=FIGURES_DIR / f"{safe_name}_cm_default.png",
+        )
+
+        plot_confusion_matrix(
+            y_true=np.array(result["_y_test"]),
+            y_pred=result["_y_test_pred_optimal"],
+            model_name=f"{model_name} (t={t_star:.2f})",
+            output_path=FIGURES_DIR / f"{safe_name}_cm_optimal.png",
         )
 
         plot_roc_curve(
@@ -672,13 +709,21 @@ def main() -> None:
             "cv_folds": result["cv_folds"],
             "cv_scoring": result["cv_scoring"],
             "training_time_seconds": result["training_time_seconds"],
-            "threshold": result["threshold"],
+            "threshold_default": result["threshold_default"],
+            "threshold_optimal_f1": result["threshold_optimal_f1"],
+            "threshold_youden": result["threshold_youden"],
             "threshold_selection": result["threshold_selection"],
-            "val_metrics": {
-                k: v for k, v in result["val_metrics"].items() if k != "split"
+            "val_metrics_default": {
+                k: v for k, v in result["val_metrics_default"].items() if k != "split"
             },
-            "test_metrics": {
-                k: v for k, v in result["test_metrics"].items() if k != "split"
+            "val_metrics_optimal": {
+                k: v for k, v in result["val_metrics_optimal"].items() if k != "split"
+            },
+            "test_metrics_default": {
+                k: v for k, v in result["test_metrics_default"].items() if k != "split"
+            },
+            "test_metrics_optimal": {
+                k: v for k, v in result["test_metrics_optimal"].items() if k != "split"
             },
             "feature_importances_top20": feature_importances,
         }
@@ -735,26 +780,35 @@ def main() -> None:
     LOGGER.info("RESUMEN FINAL — MODELOS CLÁSICOS")
     LOGGER.info("=" * 70)
 
-    sorted_results = sorted(all_results, key=lambda r: r["test_metrics"]["f1"], reverse=True)
+    sorted_results = sorted(
+        all_results, key=lambda r: r["test_metrics_optimal"]["f1"], reverse=True
+    )
 
-    header = f"{'Modelo':<25} {'F1 test':>9} {'AUC-ROC':>9} {'Precision':>10} {'Recall':>8} {'Accuracy':>9}"
+    header = f"{'Modelo':<25} {'t*':>5} {'F1(t*)':>8} {'F1(0.5)':>9} {'AUC':>7} {'Prec':>7} {'Recall':>7}"
     LOGGER.info(header)
     LOGGER.info("-" * 75)
 
     for r in sorted_results:
-        tm = r["test_metrics"]
+        opt = r["test_metrics_optimal"]
+        dflt = r["test_metrics_default"]
         LOGGER.info(
-            "%-25s %9.4f %9.4f %10.4f %8.4f %9.4f",
+            "%-25s %5.2f %8.4f %9.4f %7.4f %7.4f %7.4f",
             r["model_name"],
-            tm["f1"],
-            tm["auc_roc"],
-            tm["precision"],
-            tm["recall"],
-            tm["accuracy"],
+            r["threshold_optimal_f1"],
+            opt["f1"],
+            dflt["f1"],
+            opt["auc_roc"],
+            opt["precision"],
+            opt["recall"],
         )
 
     best = sorted_results[0]
-    LOGGER.info("\nMejor modelo por F1: %s (F1=%.4f)", best["model_name"], best["test_metrics"]["f1"])
+    LOGGER.info(
+        "\nMejor modelo por F1 al óptimo: %s (F1=%.4f en t=%.2f)",
+        best["model_name"],
+        best["test_metrics_optimal"]["f1"],
+        best["threshold_optimal_f1"],
+    )
 
 
 if __name__ == "__main__":

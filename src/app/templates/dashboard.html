@@ -1,0 +1,584 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ title }}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/style.css">
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+</head>
+<body>
+
+<!-- ============================================================
+     Top nav
+     ============================================================ -->
+<header class="topbar">
+  <div class="container topbar-inner">
+    <div class="brand">
+      <div class="brand-mark">UAX</div>
+      <span>Predicción de cáncer</span>
+    </div>
+    <nav class="nav-links">
+      <a href="#resumen">Resumen</a>
+      <a href="#modelo">Modelo</a>
+      <a href="#comparativa">Comparativa</a>
+      <a href="#variables">Variables</a>
+      <a href="#predictor">Predictor</a>
+      <a href="#datos">Datos</a>
+      <a href="#metodologia">Metodología</a>
+    </nav>
+    <span class="badge-academic">Trabajo académico</span>
+  </div>
+</header>
+
+<!-- ============================================================
+     Hero
+     ============================================================ -->
+<section class="hero" id="resumen">
+  <div class="container">
+    <span class="hero-eyebrow">Universidad Alfonso X el Sabio · Ingeniería Matemática · 2025–26</span>
+    <h1>Predicción de <span class="accent-text">diagnóstico oncológico</span> con redes neuronales y modelos clásicos.</h1>
+    <p class="hero-sub">
+      Estudio comparativo sobre una cohorte de 50&nbsp;001 pacientes extraídos
+      desde Microsoft Azure. La red neuronal MLP final iguala al mejor modelo
+      clásico en AUC y privilegia la precisión sobre la sensibilidad para un
+      escenario de cribado de segunda línea.
+    </p>
+
+    <div class="kpi-grid">
+      <div class="kpi">
+        <div class="kpi-stripe"></div>
+        <div class="kpi-label">F1 (clase positiva)</div>
+        <div class="kpi-value">{{ "%.4f"|format(mlp_f1) }}</div>
+        <div class="kpi-foot">MLP en test · umbral óptimo {{ "%.2f"|format(mlp_threshold) }}</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-stripe"></div>
+        <div class="kpi-label">AUC-ROC</div>
+        <div class="kpi-value">{{ "%.4f"|format(mlp_auc) }}</div>
+        <div class="kpi-foot">Capacidad discriminante de ranking</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-stripe"></div>
+        <div class="kpi-label">Cohorte</div>
+        <div class="kpi-value">{{ "{:,}".format(n_total).replace(",", " ") }}<span class="kpi-unit">pac.</span></div>
+        <div class="kpi-foot">{{ "{:,}".format(n_positivos).replace(",", " ") }} con diagnóstico · prevalencia {{ "%.2f"|format(prevalencia*100) }}%</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-stripe"></div>
+        <div class="kpi-label">Modelos comparados</div>
+        <div class="kpi-value">5</div>
+        <div class="kpi-foot">4 clásicos + 1 red neuronal MLP</div>
+      </div>
+    </div>
+
+    <div class="hero-disclaimer">
+      <span>⚠</span>
+      <span>Esta aplicación es un trabajo universitario. No constituye un dispositivo médico ni una recomendación clínica.</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     Modelo final · MLP
+     ============================================================ -->
+<section id="modelo">
+  <div class="container">
+    <div class="section-header">
+      <div class="eyebrow">Modelo final</div>
+      <h2>Red neuronal multicapa</h2>
+      <p>
+        Arquitectura densa con tres capas ocultas, normalización por lotes y
+        dropout, entrenada con pérdida binaria cruzada, ponderación de clases
+        y detención temprana sobre AUC en validación. El umbral de decisión se
+        ajusta exclusivamente sobre validación para evitar fuga de información
+        hacia el conjunto de prueba.
+      </p>
+    </div>
+
+    <div class="grid-2-1">
+      <div class="card">
+        <h3>Arquitectura</h3>
+        <p class="card-sub">{{ mlp_total_params|int|string }} parámetros · entrada {{ mlp_input_dim }} dim · {{ mlp_epochs }} épocas hasta convergencia</p>
+        <div class="arch-flow">
+          <span class="arch-pill input">Input · {{ mlp_input_dim }}d</span>
+          <span class="arch-arrow">→</span>
+          <span class="arch-pill">Dense 300</span>
+          <span class="arch-arrow">→</span>
+          <span class="arch-pill">BN · ReLU · Drop 0.25</span>
+          <span class="arch-arrow">→</span>
+          <span class="arch-pill">Dense 100</span>
+          <span class="arch-arrow">→</span>
+          <span class="arch-pill">BN · ReLU · Drop 0.25</span>
+          <span class="arch-arrow">→</span>
+          <span class="arch-pill">Dense 30</span>
+          <span class="arch-arrow">→</span>
+          <span class="arch-pill">BN · ReLU · Drop 0.20</span>
+          <span class="arch-arrow">→</span>
+          <span class="arch-pill output">Sigmoid</span>
+        </div>
+
+        <ul class="spec-list" style="margin-top: 20px;">
+          <li><span class="spec-key">Optimizador</span><span class="spec-val">Adam · lr 1e-3</span></li>
+          <li><span class="spec-key">Pérdida</span><span class="spec-val">binary crossentropy</span></li>
+          <li><span class="spec-key">Tamaño de lote</span><span class="spec-val">256</span></li>
+          <li><span class="spec-key">Class weight</span><span class="spec-val">balanced (sklearn)</span></li>
+          <li><span class="spec-key">Early stopping</span><span class="spec-val">val_auc, patience=10</span></li>
+          <li><span class="spec-key">Tiempo de entrenamiento</span><span class="spec-val">{{ "%.1f"|format(mlp_training_time) }} s</span></li>
+          <li><span class="spec-key">Umbral de decisión (val · F1-max)</span><span class="spec-val">{{ "%.2f"|format(mlp_threshold) }}</span></li>
+          <li><span class="spec-key">Umbral por Youden J (ref.)</span><span class="spec-val">{{ "%.2f"|format(mlp_threshold_youden) }}</span></li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3>Rendimiento (test)</h3>
+        <p class="card-sub">Métricas al umbral óptimo seleccionado en validación</p>
+        <div class="grid-2" style="gap: 12px;">
+          <div class="metric-tile">
+            <div class="label">F1 positiva</div>
+            <div class="value">{{ "%.4f"|format(mlp_f1) }}</div>
+          </div>
+          <div class="metric-tile">
+            <div class="label">AUC-ROC</div>
+            <div class="value">{{ "%.4f"|format(mlp_auc) }}</div>
+          </div>
+          <div class="metric-tile">
+            <div class="label">Precisión (VPP)</div>
+            <div class="value">{{ "%.4f"|format(mlp_precision) }}</div>
+          </div>
+          <div class="metric-tile">
+            <div class="label">Sensibilidad</div>
+            <div class="value">{{ "%.4f"|format(mlp_recall) }}</div>
+          </div>
+        </div>
+        <div style="margin-top:24px">
+          <div style="font-size:12px;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);font-weight:600;margin-bottom:12px">Matriz de confusión · umbral {{ "%.2f"|format(mlp_threshold) }}</div>
+          <div class="cmat">
+            <div></div>
+            <div class="cmat-label">Pred. negativo</div>
+            <div class="cmat-label">Pred. positivo</div>
+            <div class="cmat-label cmat-axis-left">Real negativo</div>
+            <div class="cell cell-tn">{{ "{:,}".format(mlp_cm_optimal.tn).replace(",", " ") }}<small>VN</small></div>
+            <div class="cell cell-fp">{{ "{:,}".format(mlp_cm_optimal.fp).replace(",", " ") }}<small>FP</small></div>
+            <div class="cmat-label cmat-axis-left">Real positivo</div>
+            <div class="cell cell-fn">{{ "{:,}".format(mlp_cm_optimal.fn).replace(",", " ") }}<small>FN</small></div>
+            <div class="cell cell-tp">{{ "{:,}".format(mlp_cm_optimal.tp).replace(",", " ") }}<small>VP</small></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2" style="margin-top: 24px;">
+      <div class="card">
+        <h3>Curva ROC · test</h3>
+        <p class="card-sub">Capacidad de ordenación entre clases independiente del umbral</p>
+        <div id="plot-mlp-roc" class="plot"></div>
+      </div>
+      <div class="card">
+        <h3>Curva precisión–sensibilidad · test</h3>
+        <p class="card-sub">Trade-off entre VPP y recall a lo largo del rango de probabilidades</p>
+        <div id="plot-mlp-pr" class="plot"></div>
+      </div>
+    </div>
+
+    <div class="grid-2" style="margin-top: 24px;">
+      <div class="card">
+        <h3>Curva de pérdida por época</h3>
+        <p class="card-sub">Convergencia con detención temprana sobre AUC de validación</p>
+        <div id="plot-training-loss" class="plot"></div>
+      </div>
+      <div class="card">
+        <h3>AUC-ROC por época</h3>
+        <p class="card-sub">Evolución de la métrica monitorizada por el callback</p>
+        <div id="plot-training-auc" class="plot"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     Comparativa
+     ============================================================ -->
+<section id="comparativa">
+  <div class="container">
+    <div class="section-header">
+      <div class="eyebrow">Comparativa</div>
+      <h2>Los cinco modelos del estudio</h2>
+      <p>
+        Cuatro estimadores clásicos sirven de referencia frente a la red
+        neuronal MLP. Todos comparten el mismo split estratificado 80/20, el
+        mismo preprocesado y se evalúan con el umbral óptimo tuneado en
+        validación sobre el mismo conjunto de prueba.
+      </p>
+    </div>
+
+    <div class="grid-2" style="margin-bottom: 24px;">
+      <div class="card">
+        <h3>Curvas ROC superpuestas</h3>
+        <p class="card-sub">Los cinco modelos en test — el AUC aparece junto a cada etiqueta</p>
+        <div id="plot-roc-overlay" class="plot plot-tall"></div>
+      </div>
+      <div class="card">
+        <h3>Curvas precisión–sensibilidad</h3>
+        <p class="card-sub">Reflejan mejor el desbalance de clases que ROC</p>
+        <div id="plot-pr-overlay" class="plot plot-tall"></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom: 24px;">
+      <h3>F1 al umbral óptimo y AUC-ROC</h3>
+      <p class="card-sub">Comparación directa de las dos métricas primarias del proyecto</p>
+      <div id="plot-comparison-bars" class="plot plot-tall"></div>
+    </div>
+
+    <div class="tablewrap">
+      <table class="compare">
+        <thead>
+          <tr>
+            <th>Modelo</th>
+            <th>Tipo</th>
+            <th class="numeric">Umbral t*</th>
+            <th class="numeric">F1 (t*)</th>
+            <th class="numeric">AUC-ROC</th>
+            <th class="numeric">Precisión</th>
+            <th class="numeric">Sensibilidad</th>
+            <th class="numeric">Tiempo entreno</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in comparison_rows %}
+          <tr class="{{ 'highlight' if r.key == 'mlp' else '' }}">
+            <td>{{ r.name }}</td>
+            <td><span class="pill {{ 'neural' if r.key == 'mlp' else 'classical' }}">{{ r.type }}</span></td>
+            <td class="numeric">{{ "%.2f"|format(r.threshold) }}</td>
+            <td class="numeric">{{ "%.4f"|format(r.f1) }}</td>
+            <td class="numeric">{{ "%.4f"|format(r.auc) }}</td>
+            <td class="numeric">{{ "%.4f"|format(r.precision) }}</td>
+            <td class="numeric">{{ "%.4f"|format(r.recall) }}</td>
+            <td class="numeric">{{ "%.2f"|format(r.training_time) }} s</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     Variables predictivas
+     ============================================================ -->
+<section id="variables">
+  <div class="container">
+    <div class="section-header">
+      <div class="eyebrow">Variables clave</div>
+      <h2>¿Qué mueve la predicción?</h2>
+      <p>
+        Importancias de XGBoost (mejor modelo clásico). Las features clínicas
+        derivadas (umbrales binarios y carga mutacional agregada) aparecen
+        entre las más relevantes, validando que el conocimiento de dominio
+        aporta señal real al modelo.
+      </p>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <h3>Top 12 features · XGBoost</h3>
+        <p class="card-sub">Ordenadas por ganancia de información (gain)</p>
+        <ul class="feat-list">
+          {% set max_imp = xgb_importances[0].importance %}
+          {% for f in xgb_importances %}
+          <li class="feat-row">
+            <span class="feat-name">{{ f.feature }}</span>
+            <span class="feat-bar"><span style="width: {{ (f.importance / max_imp * 100)|round(1) }}%"></span></span>
+            <span class="feat-val">{{ "%.3f"|format(f.importance) }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3>Lectura clínica</h3>
+        <p class="card-sub">Coherencia con la literatura oncogenética</p>
+        <ul style="list-style:none; padding:0; margin:0; font-size:14px; color:var(--text-soft); line-height:1.7;">
+          <li style="padding:12px 0; border-bottom:1px solid var(--border);">
+            <strong style="color:var(--primary)">Carga mutacional germinal</strong> — <code style="font-family:var(--font-mono);background:var(--bg-soft);padding:1px 6px;border-radius:4px;font-size:12px;color:var(--primary)">n_mutaciones_alto_riesgo</code> (BRCA1+TP53+KRAS) domina el ranking. Coincide con los principales drivers oncogénicos descritos.
+          </li>
+          <li style="padding:12px 0; border-bottom:1px solid var(--border);">
+            <strong style="color:var(--primary)">Hábito tabáquico</strong> — factor de riesgo modificable más potente; presente en virtualmente todos los carcinomas de aerodigestivo y pulmón.
+          </li>
+          <li style="padding:12px 0; border-bottom:1px solid var(--border);">
+            <strong style="color:var(--primary)">Obesidad</strong> — asociada a múltiples tipos tumorales (mama postmenopáusica, colorrectal, endometrio).
+          </li>
+          <li style="padding:12px 0; border-bottom:1px solid var(--border);">
+            <strong style="color:var(--primary)">Umbrales bioquímicos</strong> — <code style="font-family:var(--font-mono);background:var(--bg-soft);padding:1px 6px;border-radius:4px;font-size:12px;color:var(--primary)">glucosa_alta</code> y <code style="font-family:var(--font-mono);background:var(--bg-soft);padding:1px 6px;border-radius:4px;font-size:12px;color:var(--primary)">edad_riesgo</code> capturan no-linealidades clínicas que el escalado estándar destruye.
+          </li>
+          <li style="padding:12px 0;">
+            <strong style="color:var(--primary)">5 variables económicas excluidas</strong> — <code style="font-family:var(--font-mono);background:var(--bg-soft);padding:1px 6px;border-radius:4px;font-size:12px;color:var(--primary)">coste_total</code>, <code style="font-family:var(--font-mono);background:var(--bg-soft);padding:1px 6px;border-radius:4px;font-size:12px;color:var(--primary)">dias_hospital</code>, etc. presentaban correlaciones inverosímiles (r&gt;0.64) con el desenlace: información post-diagnóstico, no aprovechable sin fuga.
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     Predictor interactivo
+     ============================================================ -->
+<section id="predictor">
+  <div class="container">
+    <div class="section-header">
+      <div class="eyebrow">Demostración</div>
+      <h2>Estimador interactivo</h2>
+      <p>
+        Introduce los parámetros de un paciente y obtén la estimación de riesgo
+        de la MLP en tiempo real, junto a la predicción del XGBoost de
+        referencia. El servidor aplica el feature engineering clínico
+        automáticamente antes de pasar los datos al modelo.
+      </p>
+    </div>
+
+    <div class="grid-2">
+      <form id="predictor-form" class="form-section">
+
+        <div class="form-group">
+          <h4>Bioquímica</h4>
+          <div class="form-grid">
+            <div class="field"><label>Glucosa (mg/dL)</label><input type="number" step="0.1" name="glucosa" value="101.0" min="40" max="300" required></div>
+            <div class="field"><label>Colesterol (mg/dL)</label><input type="number" step="1" name="colesterol" value="193" min="80" max="400" required></div>
+            <div class="field"><label>Triglicéridos (mg/dL)</label><input type="number" step="1" name="trigliceridos" value="155" min="30" max="500" required></div>
+            <div class="field"><label>Hemoglobina (g/dL)</label><input type="number" step="0.1" name="hemoglobina" value="14.0" min="5" max="22" required></div>
+            <div class="field"><label>Leucocitos (×10³/μL)</label><input type="number" step="0.1" name="leucocitos" value="7.0" min="1" max="30" required></div>
+            <div class="field"><label>Plaquetas (×10³/μL)</label><input type="number" step="1" name="plaquetas" value="255" min="50" max="600" required></div>
+            <div class="field"><label>Creatinina (mg/dL)</label><input type="number" step="0.01" name="creatinina" value="1.00" min="0.1" max="5" required></div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <h4>Datos sociodemográficos</h4>
+          <div class="form-grid">
+            <div class="field"><label>Edad (años)</label><input type="number" step="1" name="edad" value="55" min="18" max="100" required></div>
+            <div class="field"><label>Hijos</label><input type="number" step="1" name="num_hijos" value="1" min="0" max="15" required></div>
+            <div class="field"><label>Distancia al hospital (km)</label><input type="number" step="0.5" name="distancia_hospital_km" value="15.0" min="0" max="500" required></div>
+            <div class="field">
+              <label>Actividad física</label>
+              <select name="actividad_fisica">
+                {% for opt in actividad_levels %}<option value="{{ opt }}" {% if opt == "Moderada" %}selected{% endif %}>{{ opt }}</option>{% endfor %}
+              </select>
+            </div>
+            <div class="field">
+              <label>Nivel educativo</label>
+              <select name="nivel_educativo">
+                {% for opt in categorical_levels.nivel_educativo %}<option value="{{ opt }}" {% if opt == "Secundaria" %}selected{% endif %}>{{ opt }}</option>{% endfor %}
+              </select>
+            </div>
+            <div class="field">
+              <label>Nivel de ingresos</label>
+              <select name="nivel_ingresos">
+                {% for opt in categorical_levels.nivel_ingresos %}<option value="{{ opt }}" {% if opt == "Medio" %}selected{% endif %}>{{ opt }}</option>{% endfor %}
+              </select>
+            </div>
+            <div class="field">
+              <label>Zona</label>
+              <select name="zona">
+                {% for opt in categorical_levels.zona %}<option value="{{ opt }}" {% if opt == "Urbana" %}selected{% endif %}>{{ opt }}</option>{% endfor %}
+              </select>
+            </div>
+            <div class="field">
+              <label>Estado civil</label>
+              <select name="estado_civil">
+                {% for opt in categorical_levels.estado_civil %}<option value="{{ opt }}" {% if opt == "Casado" %}selected{% endif %}>{{ opt }}</option>{% endfor %}
+              </select>
+            </div>
+            <div class="field">
+              <label>Cobertura sanitaria</label>
+              <select name="tipo_seguro">
+                {% for opt in categorical_levels.tipo_seguro %}<option value="{{ opt }}" {% if opt == "Publico" %}selected{% endif %}>{{ opt }}</option>{% endfor %}
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <h4>Comorbilidades y hábitos</h4>
+          <div class="checks-grid three">
+            <label class="field-checkbox"><input type="checkbox" name="diabetes"> Diabetes</label>
+            <label class="field-checkbox"><input type="checkbox" name="hipertension"> Hipertensión</label>
+            <label class="field-checkbox"><input type="checkbox" name="obesidad"> Obesidad</label>
+            <label class="field-checkbox"><input type="checkbox" name="enfermedad_cardiaca"> Enf. cardíaca</label>
+            <label class="field-checkbox"><input type="checkbox" name="asma"> Asma</label>
+            <label class="field-checkbox"><input type="checkbox" name="epoc"> EPOC</label>
+            <label class="field-checkbox"><input type="checkbox" name="fumador"> Fumador activo</label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <h4>Mutaciones germinales</h4>
+          <div class="checks-grid three">
+            <label class="field-checkbox"><input type="checkbox" name="mut_BRCA1"> BRCA1</label>
+            <label class="field-checkbox"><input type="checkbox" name="mut_TP53"> TP53</label>
+            <label class="field-checkbox"><input type="checkbox" name="mut_EGFR"> EGFR</label>
+            <label class="field-checkbox"><input type="checkbox" name="mut_KRAS"> KRAS</label>
+            <label class="field-checkbox"><input type="checkbox" name="mut_PIK3CA"> PIK3CA</label>
+            <label class="field-checkbox"><input type="checkbox" name="mut_ALK"> ALK</label>
+            <label class="field-checkbox"><input type="checkbox" name="mut_BRAF"> BRAF</label>
+          </div>
+        </div>
+
+        <div class="submit-row">
+          <button type="submit" class="btn btn-primary">Estimar riesgo</button>
+          <button type="reset" class="btn btn-secondary">Reiniciar</button>
+        </div>
+      </form>
+
+      <div class="result-panel empty" id="result-panel">
+        <div class="placeholder-icon">⊙</div>
+        <div style="font-size:15px;font-weight:500;color:var(--text-soft);max-width:240px">
+          Completa el formulario y pulsa <strong>Estimar riesgo</strong> para ver la predicción de la MLP y de XGBoost.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     Explorador de datos
+     ============================================================ -->
+<section id="datos">
+  <div class="container">
+    <div class="section-header">
+      <div class="eyebrow">Datos</div>
+      <h2>Explorador de distribuciones</h2>
+      <p>
+        Distribuciones de las variables continuas más relevantes,
+        estratificadas por desenlace. Las líneas verticales marcan la mediana
+        de cada grupo: cuanto más separadas, mayor poder discriminante
+        univariante.
+      </p>
+    </div>
+
+    <div class="explorer-controls">
+      <select id="feature-select">
+        <option value="glucosa">Glucosa</option>
+        <option value="colesterol">Colesterol</option>
+        <option value="hemoglobina">Hemoglobina</option>
+        <option value="leucocitos">Leucocitos</option>
+        <option value="edad">Edad</option>
+        <option value="trigliceridos">Triglicéridos</option>
+        <option value="plaquetas">Plaquetas</option>
+        <option value="creatinina">Creatinina</option>
+        <option value="n_mutaciones_total">Carga mutacional total</option>
+        <option value="n_mutaciones_alto_riesgo">Mutaciones de alto riesgo</option>
+      </select>
+      <div class="legend">
+        <span><span class="swatch" style="background: var(--accent)"></span>Sin diagnóstico</span>
+        <span><span class="swatch" style="background: var(--danger)"></span>Con diagnóstico</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div id="plot-distribution" class="plot plot-tall"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     Metodología
+     ============================================================ -->
+<section id="metodologia">
+  <div class="container">
+    <div class="section-header">
+      <div class="eyebrow">Metodología</div>
+      <h2>Cómo está construido el estudio</h2>
+      <p>
+        Pipeline reproducible end-to-end, con semilla fija, separación
+        estricta de conjuntos y reglas anti-fuga aplicadas en todas las
+        etapas. Todo se serializa y puede regenerarse con tres comandos.
+      </p>
+    </div>
+
+    <div class="method-grid">
+      <div class="method-card">
+        <div class="icon">🛡</div>
+        <h4>Reglas anti-fuga</h4>
+        <ul>
+          <li>Split estratificado 80/20 por <code>cancer</code>, semilla 42.</li>
+          <li>Preprocesador (scaler + OHE) <strong>ajustado solo sobre train</strong>.</li>
+          <li>Umbral de decisión tuneado <strong>solo sobre validación</strong>.</li>
+          <li>Test se evalúa <strong>una única vez</strong> al final.</li>
+          <li>Cinco variables económicas excluidas por correlación post-diagnóstico.</li>
+        </ul>
+      </div>
+
+      <div class="method-card">
+        <div class="icon">⚙</div>
+        <h4>Pipeline</h4>
+        <ul>
+          <li>ETL desde Azure SQL → <code>data/raw/</code> (6 CSV).</li>
+          <li>Unión por <code>paciente_id</code> → <code>data/interim/joined.csv</code>.</li>
+          <li>Feature engineering clínico (umbrales + carga mutacional + ordinales).</li>
+          <li>Split 80/20 → <code>train.csv</code> + <code>test.csv</code>.</li>
+          <li>Modelado clásico (GridSearchCV) + MLP (TF/Keras) + comparativa.</li>
+        </ul>
+      </div>
+
+      <div class="method-card">
+        <div class="icon">📐</div>
+        <h4>Métricas primarias</h4>
+        <ul>
+          <li><strong>F1</strong> sobre la clase positiva, al umbral óptimo.</li>
+          <li><strong>AUC-ROC</strong> como capacidad discriminante de ranking.</li>
+          <li>Precisión y sensibilidad se reportan en paralelo.</li>
+          <li>Accuracy es solo referencia (engañosa bajo desbalance).</li>
+        </ul>
+      </div>
+
+      <div class="method-card">
+        <div class="icon">↺</div>
+        <h4>Reproducibilidad</h4>
+        <ul>
+          <li>Entorno conda <code>uax-tf</code> (Python 3.12 + TensorFlow 2.21).</li>
+          <li>Semillas fijadas en <code>numpy</code>, <code>tensorflow</code>, <code>random</code>, <code>sklearn</code>.</li>
+          <li>Pipeline: <code>build_dataset</code> → <code>train_classical</code> → <code>train_mlp</code>.</li>
+          <li>Resultados y figuras serializados por fase en <code>reports/</code>.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     Footer
+     ============================================================ -->
+<footer>
+  <div class="container">
+    <div class="grid-2">
+      <div>
+        <div style="font-family:var(--font-display); font-size:18px; font-weight:600; color:var(--primary); margin-bottom:6px">Predicción de cáncer · UAX</div>
+        <div>Universidad Alfonso X el Sabio · Grado en Ingeniería Matemática · Inteligencia Artificial · 2025-26.</div>
+        <div style="margin-top:8px">Aviso académico — esta aplicación no constituye un dispositivo médico ni una recomendación clínica.</div>
+      </div>
+      <div>
+        <strong>Stack técnico</strong>
+        <div class="tech-tags">
+          <span class="tag">Python 3.12</span>
+          <span class="tag">FastAPI</span>
+          <span class="tag">scikit-learn</span>
+          <span class="tag">XGBoost</span>
+          <span class="tag">TensorFlow / Keras</span>
+          <span class="tag">Plotly.js</span>
+          <span class="tag">Azure SQL</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  window.__DATA__ = {{ data_json | safe }};
+</script>
+<script src="/static/js/app.js"></script>
+</body>
+</html>

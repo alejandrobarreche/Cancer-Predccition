@@ -2,125 +2,73 @@
   "model_name": "HistGradientBoosting",
   "best_hyperparameters": {
     "learning_rate": 0.05,
-    "max_depth": 4,
-    "max_iter": 200,
+    "max_depth": null,
+    "max_iter": 400,
     "min_samples_leaf": 50
   },
-  "cv_best_f1": 0.550708,
+  "cv_best_f1": 0.552116,
   "cv_folds": 5,
   "cv_scoring": "f1",
-  "training_time_seconds": 22.47,
-  "threshold": 0.5,
-  "threshold_selection": "default",
-  "val_metrics": {
-    "f1": 0.571017,
-    "auc_roc": 0.856028,
-    "precision": 0.453782,
-    "recall": 0.769929,
-    "accuracy": 0.776875,
-    "average_precision": 0.647126,
+  "training_time_seconds": 27.94,
+  "threshold_default": 0.5,
+  "threshold_optimal_f1": 0.64,
+  "threshold_youden": 0.5024,
+  "threshold_selection": "validation_f1_max",
+  "val_metrics_default": {
+    "f1": 0.660268,
+    "auc_roc": 0.917817,
+    "precision": 0.540977,
+    "recall": 0.847051,
+    "accuracy": 0.831875,
+    "average_precision": 0.764649,
     "confusion_matrix": {
-      "tn": 5027,
-      "fp": 1430,
-      "fn": 355,
-      "tp": 1188
+      "tn": 5348,
+      "fp": 1109,
+      "fn": 236,
+      "tp": 1307
     }
   },
-  "test_metrics": {
-    "f1": 0.556431,
-    "auc_roc": 0.844353,
-    "precision": 0.442237,
-    "recall": 0.75013,
-    "accuracy": 0.769323,
-    "average_precision": 0.612744,
+  "val_metrics_optimal": {
+    "f1": 0.689915,
+    "auc_roc": 0.917817,
+    "precision": 0.669512,
+    "recall": 0.711601,
+    "accuracy": 0.876625,
+    "average_precision": 0.764649,
     "confusion_matrix": {
-      "tn": 6247,
-      "fp": 1825,
-      "fn": 482,
-      "tp": 1447
+      "tn": 5915,
+      "fp": 542,
+      "fn": 445,
+      "tp": 1098
     }
   },
-  "feature_importances_top20": [
-    {
-      "feature": "fumador",
-      "importance": 0.058285
-    },
-    {
-      "feature": "mut_TP53",
-      "importance": 0.047579
-    },
-    {
-      "feature": "mut_BRCA1",
-      "importance": 0.037404
-    },
-    {
-      "feature": "mut_KRAS",
-      "importance": 0.029736
-    },
-    {
-      "feature": "obesidad",
-      "importance": 0.028367
-    },
-    {
-      "feature": "tipo_seguro",
-      "importance": 0.025118
-    },
-    {
-      "feature": "actividad_fisica",
-      "importance": 0.016533
-    },
-    {
-      "feature": "glucosa",
-      "importance": 0.011713
-    },
-    {
-      "feature": "mut_EGFR",
-      "importance": 0.008345
-    },
-    {
-      "feature": "hipertension",
-      "importance": 0.006302
-    },
-    {
-      "feature": "mut_PIK3CA",
-      "importance": 0.004975
-    },
-    {
-      "feature": "hemoglobina",
-      "importance": 0.002947
-    },
-    {
-      "feature": "edad",
-      "importance": 0.001423
-    },
-    {
-      "feature": "mut_BRAF",
-      "importance": 0.001042
-    },
-    {
-      "feature": "estado_civil",
-      "importance": 0.000304
-    },
-    {
-      "feature": "distancia_hospital_km",
-      "importance": 0.000291
-    },
-    {
-      "feature": "nivel_ingresos",
-      "importance": 0.000218
-    },
-    {
-      "feature": "nivel_educativo",
-      "importance": 0.000188
-    },
-    {
-      "feature": "epoc",
-      "importance": 0.000175
-    },
-    {
-      "feature": "asma",
-      "importance": 9e-05
+  "test_metrics_default": {
+    "f1": 0.564461,
+    "auc_roc": 0.840376,
+    "precision": 0.459336,
+    "recall": 0.731985,
+    "accuracy": 0.782122,
+    "average_precision": 0.602516,
+    "confusion_matrix": {
+      "tn": 6410,
+      "fp": 1662,
+      "fn": 517,
+      "tp": 1412
     }
-  ],
-  "feature_importances_method": "permutation_importance_test_f1"
+  },
+  "test_metrics_optimal": {
+    "f1": 0.569556,
+    "auc_roc": 0.840376,
+    "precision": 0.554193,
+    "recall": 0.585796,
+    "accuracy": 0.829217,
+    "average_precision": 0.602516,
+    "confusion_matrix": {
+      "tn": 7163,
+      "fp": 909,
+      "fn": 799,
+      "tp": 1130
+    }
+  },
+  "feature_importances_top20": []
 }
